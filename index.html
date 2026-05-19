@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rack</title>
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:'DotGothic16',monospace;background:#f0f0f0;overflow-x:hidden;background-image:radial-gradient(circle,#d8d8d8 1px,transparent 1px);background-size:16px 16px}
+input,textarea,button,select{font-family:'DotGothic16',monospace;-webkit-appearance:none;border-radius:0}
+#root{min-height:100vh}
+@keyframes pulse{0%,100%{opacity:.7;transform:scale(1)}50%{opacity:1;transform:scale(1.15)}}
+.sys-tabs{position:fixed;left:12px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:0;z-index:60;border:2px solid #2b4280;box-shadow:3px 3px 0 #c7d2ea}
+.sys-tab{padding:10px 10px;font-size:12;letter-spacing:2px;cursor:pointer;text-align:center;border-bottom:1px solid #c7d2ea;min-width:56px}
+.sys-tab:last-child{border-bottom:none}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script type="text/babel">
+const {useState}=React;
+const CL={primary:"#2b4280",dark:"#1a2d5c",mid:"#3b56a0",light:"#5571b8",pale:"#8a9fd4",faint:"#c7d2ea",wash:"#e8edf6",bg:"#f0f0f0",card:"#fafafa",text:"#222",muted:"#999",border:"#ccc",shadow:"#c7d2ea",gold:"#d4a03c",goldLight:"#e0c068",goldDark:"#9a7520"};
+const S={
+  card:{background:CL.card,border:"2px solid "+CL.primary,boxShadow:"3px 3px 0 "+CL.shadow},
+  cardDim:{background:CL.card,border:"2px solid "+CL.border,boxShadow:"2px 2px 0 #e0e0e0"},
+  btn:{padding:"6px 14px",border:"2px solid "+CL.primary,background:CL.card,color:CL.primary,fontSize:12,letterSpacing:1,cursor:"pointer",boxShadow:"2px 2px 0 "+CL.border,fontFamily:"inherit"},
+  btnDk:{padding:"6px 14px",border:"2px solid "+CL.primary,background:CL.primary,color:CL.wash,fontSize:12,letterSpacing:1,cursor:"pointer",boxShadow:"2px 2px 0 "+CL.pale,fontFamily:"inherit"},
+  btnSm:{padding:"4px 10px",border:"2px solid "+CL.primary,background:CL.card,color:CL.primary,fontSize:11,cursor:"pointer",fontFamily:"inherit"},
+  input:{width:"100%",padding:"8px 10px",border:"2px solid "+CL.primary,background:CL.card,fontFamily:"inherit",fontSize:14,color:CL.primary,outline:"none",boxSizing:"border-box"},
+  label:{fontSize:12,color:CL.muted,letterSpacing:1},
+  secTitle:{fontSize:12,letterSpacing:2,color:CL.pale,marginBottom:10,paddingBottom:6,borderBottom:"2px dashed "+CL.faint}
+};
+const TX={
+  en:{overview:"OVERVIEW",tasks:"TASKS",metrics:"METRICS",context:"CONTEXT",learn:"LEARN",ideas:"IDEAS",high:"HIGH",med:"MED",low:"LOW",pending:"PENDING",done:"DONE",noTasks:"no tasks",recentTasks:"RECENT TASKS",progress:"PROGRESS",decisions:"DECISIONS",footer:"RACK · Built with # by Iris & Claude",save:"SAVE",more:"▼ more",less:"▲ less",quickAdd:"+ QUICK ADD",newTask:"+ new task...",observers:"OBSERVERS",reviews:"REVIEWS",curated:"CURATED",negative:"NEGATIVE",active:"ACTIVE",convRate:"CONV %",notes:"NOTES",onTrack:"ON TRACK",atRisk:"AT RISK",blocked:"BLOCKED",direction:"DIRECTION",current:"NOW",nextStep:"NEXT",recentLearn:"RECENT LEARNINGS",noLearn:"nothing yet",addLearn:"ADD",source:"source",addIdea:"ADD",ideaPh:"new idea...",noIdeas:"no ideas yet",projects:"PROJECTS",completed:"COMPLETED",processed:"PROCESSED",adopt:"adopt",drop:"drop",ideaLabel:"IDEA"},
+  zh:{overview:"总览",tasks:"任务",metrics:"数据",context:"上下文",learn:"学习",ideas:"想法",high:"高",med:"中",low:"低",pending:"待办",done:"已完成",noTasks:"没有任务",recentTasks:"近期任务",progress:"进展",decisions:"已做决策",footer:"RACK · Built with # by Iris & Claude",save:"保存",more:"▼ 更多",less:"▲ 收起",quickAdd:"+ QUICK ADD",newTask:"+ 新任务...",observers:"新增观猹员",reviews:"猹评",curated:"精选",negative:"差评",active:"活跃",convRate:"转化率 %",notes:"备注",onTrack:"正常",atRisk:"注意",blocked:"阻塞",direction:"方向",current:"现在",nextStep:"下一步",recentLearn:"最近学到的",noLearn:"还没有记录",addLearn:"添加",source:"来源",addIdea:"添加",ideaPh:"新想法...",noIdeas:"还没有想法",projects:"项目",completed:"已完成",processed:"已处理",adopt:"采纳",drop:"放弃",ideaLabel:"想法"}
+};
+
+const W_LINES=[
+  {id:"acquisition",name:"拉新",status:"on_track",key_metric_value:142,key_metric_unit:"人",key_metric_label:"本周新增",next_action:"优化落地页转化率"},
+  {id:"conversion",name:"转化",status:"at_risk",key_metric_value:23.5,key_metric_unit:"%",key_metric_label:"转化率",next_action:"跟进高意向用户"},
+  {id:"quality",name:"质量",status:"on_track",key_metric_value:4.2,key_metric_unit:"分",key_metric_label:"平均评分",next_action:"处理差评反馈"}
+];
+const W_TASKS=[
+  {id:1,title:"优化落地页 A/B 测试方案",work_line_id:"acquisition",status:"in_progress",priority:"high",due_date:"2026-05-22"},
+  {id:2,title:"跟进 5 个高意向用户",work_line_id:"conversion",status:"todo",priority:"high",due_date:"2026-05-20"},
+  {id:3,title:"处理本周差评反馈",work_line_id:"quality",status:"todo",priority:"medium"},
+  {id:4,title:"撰写招募文案",work_line_id:"acquisition",status:"todo",priority:"medium"},
+  {id:5,title:"转化漏斗数据整理",work_line_id:"conversion",status:"todo",priority:"low"},
+  {id:6,title:"发布精选猹评合辑",work_line_id:"quality",status:"done",priority:"medium",completed_at:"2026-05-18"},
+  {id:7,title:"上线新手引导",work_line_id:"acquisition",status:"done",priority:"high",completed_at:"2026-05-17"}
+];
+const W_CTX=[
+  {id:1,content:"落地页改版后转化率提升 3%",created_at:"2026-05-19",tag:"推进"},
+  {id:2,content:"30% 用户在注册第二步流失",created_at:"2026-05-18",tag:"观察"},
+  {id:3,content:"精选猹评互动率是普通的 4 倍",created_at:"2026-05-17",tag:"观察"},
+  {id:4,content:"考虑引入邀请裂变机制",created_at:"2026-05-16",tag:"想法"}
+];
+const W_DECS=[
+  {id:1,decision:"全选择题考试方案",reasoning:"降低出题成本",made_at:"2026-05-18",made_by:"iris"},
+  {id:2,decision:"精选猹评改为每日推送",reasoning:"互动率高",made_at:"2026-05-16",made_by:"iris"}
+];
+const W_METRICS=Array.from({length:14},function(_,i){var d=new Date(2026,4,6+i);return{date:d.toISOString().slice(0,10),new_guanchayuan:Math.floor(Math.random()*30+10),new_chapin:Math.floor(Math.random()*20+5),new_negative:Math.floor(Math.random()*5)}});
+
+const L_LINES=[
+  {id:"crosstalk",name:"Crosstalk",sub:"串话",status:"active",current:"稳定运行",next_action:"加评论通知",icon:"🎧"},
+  {id:"catchword",name:"Catchword",sub:"暗号",status:"active",current:"等待选书",next_action:"选下一本",icon:"📖"},
+  {id:"cue",name:"Cue",sub:"提示",status:"active",current:"星图优化中",next_action:"复习算法调参",icon:"❓"},
+  {id:"ember",name:"Ember",sub:"余烬",status:"active",current:"日记稳定",next_action:"加注释搜索",icon:"📔"},
+  {id:"glimpse",name:"Glimpse",sub:"一瞥",status:"active",current:"照片上传正常",next_action:"压缩质量优化",icon:"📷"},
+  {id:"brain",name:"Brain",sub:"大脑",status:"active",current:"梦境整理运行中",next_action:"更新 setup.sql",icon:"🧠"},
+  {id:"aftertaste",name:"Aftertaste",sub:"余味",status:"active",current:"酒柜稳定",next_action:"品酒笔记导出",icon:"🍷"},
+  {id:"overtone",name:"Overtone",sub:"泛音",status:"done",current:"功能完整",next_action:null,icon:"🎹"},
+  {id:"tally",name:"Tally",sub:"记帐",status:"done",current:"功能完整",next_action:null,icon:"⭐"}
+];
+const L_TASKS=[
+  {id:201,title:"Cue 星图力导向参数优化",work_line_id:"cue",status:"in_progress",priority:"medium"},
+  {id:202,title:"Brain setup.sql 同步本地",work_line_id:"brain",status:"todo",priority:"low"},
+  {id:203,title:"Glimpse 压缩质量调优",work_line_id:"glimpse",status:"todo",priority:"low"},
+  {id:204,title:"Catchword 选下一本书",work_line_id:"catchword",status:"todo",priority:"medium"},
+  {id:205,title:"Cue 复习间隔算法调参",work_line_id:"cue",status:"done",priority:"high",completed_at:"2026-05-16"}
+];
+const L_IDEAS_INIT=[
+  {id:1,content:"Ember 日记提到的书自动关联到 Catchword",line_id:"ember",status:"active",created_at:"2026-05-18"},
+  {id:2,content:"Brain 加情绪地图可视化",line_id:"brain",status:"active",created_at:"2026-05-16"},
+  {id:3,content:"新项目：habit tracker，像素风，叫 Streak？",line_id:null,status:"active",created_at:"2026-05-14"},
+  {id:4,content:"Crosstalk 年度歌曲回顾",line_id:"crosstalk",status:"adopted",created_at:"2026-05-12"},
+  {id:5,content:"Tally 加信用卡账单导入",line_id:"tally",status:"dropped",created_at:"2026-05-10"}
+];
+
+const I_LINES=[
+  {id:"xhs-brand",name:"小红书品牌",status:"on_track",direction:"年底前建立 AI 工具向个人品牌",current:"粉丝 3200，最近选题反响不错",next_action:"下一篇：我的 AI 工具链"},
+  {id:"ai-learning",name:"AI 认知体系",status:"on_track",direction:"半年内建立从原理到应用的系统认知",current:"理解了生成/训练/幻觉/RLHF",next_action:"看 3Blue1Brown 注意力机制"},
+  {id:"life-system",name:"个人管理",status:"on_track",direction:"用工具让生活有序但不僵硬",current:"Rack 升级中，三系统框架确定",next_action:"完成 Iris 前端"}
+];
+const I_TASKS=[
+  {id:101,title:"写小红书：我的 AI 工具链",work_line_id:"xhs-brand",status:"todo",priority:"medium"},
+  {id:102,title:"看 3Blue1Brown 注意力机制",work_line_id:"ai-learning",status:"in_progress",priority:"medium"},
+  {id:103,title:"整理 Transformer 笔记",work_line_id:"ai-learning",status:"todo",priority:"low"},
+  {id:104,title:"完成 Rack Iris 前端",work_line_id:"life-system",status:"in_progress",priority:"high"},
+  {id:105,title:"OneLoop spec 定稿",work_line_id:"life-system",status:"done",priority:"high",completed_at:"2026-05-19"}
+];
+const I_LEARN=[
+  {id:1,content:"Transformer 的 attention 是加权求和——Q 问问题，K 举手回应，V 提供答案。",source:"3Blue1Brown",tags:["AI","attention"],created_at:"2026-05-19"},
+  {id:2,content:"小红书推荐算法更看重完播率而非点赞。前 3 秒决定命运。",source:"运营群",tags:["小红书"],created_at:"2026-05-18"},
+  {id:3,content:"RLHF 的核心是用偏好信号微调方向，模型能力边界在预训练就定了。",source:"Anthropic blog",tags:["AI","RLHF"],created_at:"2026-05-17"},
+  {id:4,content:"个人品牌本质是持续输出某领域思考。一致性比创意重要。",source:null,tags:["品牌"],created_at:"2026-05-15"}
+];
+
+function fmtDate(d){return d?d.slice(5).replace("-","/"):""}
+var TAG_C={"推进":CL.light,"观察":CL.gold,"想法":CL.pale};
+var PRI_C={high:CL.dark,medium:CL.gold,low:CL.pale};
+
+function SysTabs({system,setSystem,setPage}){
+  return (
+    <div className="sys-tabs">
+      {[["work","WORK"],["lux","LUX"],["iris","IRIS"]].map(function(arr){return(
+        <div key={arr[0]} className="sys-tab" onClick={function(){setSystem(arr[0]);setPage("overview")}} style={{background:system===arr[0]?CL.primary:CL.card,color:system===arr[0]?CL.wash:CL.pale}}>{arr[1]}</div>
+      )})}
+    </div>
+  );
+}
+
+function Nav({page,setPage,lang,setLang,t,system}){
+  var tabMap={work:[["overview",t.overview],["tasks",t.tasks],["metrics",t.metrics],["context",t.context]],lux:[["overview",t.overview],["tasks",t.tasks],["ideas",t.ideas]],iris:[["overview",t.overview],["tasks",t.tasks],["learn",t.learn]]};
+  var tabs=tabMap[system]||[];
+  return (
+    <div style={{...S.card,padding:"12px 20px",display:"flex",alignItems:"center",gap:14,marginBottom:20,flexWrap:"wrap"}}>
+      <span style={{fontSize:16,color:CL.dark,marginRight:8}}>RACK <span style={{color:CL.gold}}>#</span></span>
+      <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
+        {tabs.map(function(arr){return <span key={arr[0]} style={page===arr[0]?S.btnDk:S.btn} onClick={function(){setPage(arr[0])}}>{arr[1]}</span>})}
+      </div>
+      <div style={{marginLeft:"auto",display:"flex",alignItems:"center",gap:10}}>
+        <div style={{display:"flex",border:"2px solid "+CL.primary}}>
+          {["en","zh"].map(function(l){return <span key={l} onClick={function(){setLang(l)}} style={{fontSize:11,padding:"3px 10px",background:lang===l?CL.primary:CL.card,color:lang===l?CL.wash:CL.primary,cursor:"pointer"}}>{l.toUpperCase()}</span>})}
+        </div>
+        <div style={{width:12,height:12,background:CL.faint,animation:"pulse 2.5s ease-in-out infinite"}}/>
+      </div>
+    </div>
+  );
+}
+
+function TaskRow({tk,lineName,t,isDone,onCycle}){
+  return (
+    <div style={{display:"flex",alignItems:"center",padding:isDone?"6px 18px":"10px 18px",borderBottom:"1px dashed "+CL.faint}}>
+      <div style={{width:28,flexShrink:0}} onClick={function(e){e.stopPropagation();if(onCycle)onCycle(tk.id)}}>
+        <span style={{width:14,height:14,display:"inline-block",cursor:"pointer",border:"2px solid "+(isDone?CL.gold:tk.status==="in_progress"?CL.primary:CL.border),background:isDone?CL.gold:tk.status==="in_progress"?CL.primary:"transparent"}}/>
+      </div>
+      <div style={{width:28,flexShrink:0}}>
+        {!isDone&&<span style={{fontSize:11,color:PRI_C[tk.priority]}}>{tk.priority==="high"?t.high:tk.priority==="medium"?t.med:t.low}</span>}
+      </div>
+      <div style={{flex:1,minWidth:0,fontSize:isDone?13:14,color:isDone?CL.muted:CL.text,textDecoration:isDone?"line-through":"none"}}>{tk.title}</div>
+      {lineName&&<span style={{fontSize:12,color:CL.pale,marginLeft:12,flexShrink:0}}>{lineName}</span>}
+      {tk.due_date&&!isDone&&<span style={{fontSize:12,color:CL.muted,marginLeft:12,flexShrink:0}}>{fmtDate(tk.due_date)}</span>}
+      {isDone&&tk.completed_at&&<span style={{fontSize:11,color:CL.pale,marginLeft:12,flexShrink:0}}>{fmtDate(tk.completed_at)}</span>}
+    </div>
+  );
+}
+
+function TasksList({tasks:initTasks,lines,t}){
+  var [tasks,setTasks]=useState(initTasks);
+  var [filter,setFilter]=useState("all");
+  var fl=filter==="all"?tasks:tasks.filter(function(x){return x.work_line_id===filter});
+  var pending=fl.filter(function(x){return x.status!=="done"}).sort(function(a,b){var p={high:0,medium:1,low:2};return(p[a.priority]||1)-(p[b.priority]||1)});
+  var done=fl.filter(function(x){return x.status==="done"}).sort(function(a,b){return new Date(b.completed_at||0)-new Date(a.completed_at||0)});
+  var ln=function(id){var f=lines.find(function(l){return l.id===id});return f?f.name:""};
+  var cycle=function(id){setTasks(function(prev){return prev.map(function(tk){if(tk.id!==id)return tk;var next=tk.status==="todo"?"in_progress":tk.status==="in_progress"?"done":"todo";return Object.assign({},tk,{status:next,completed_at:next==="done"?new Date().toISOString():null})})})};
+  return (
+    <div>
+      <div style={{display:"flex",gap:4,marginBottom:16,flexWrap:"wrap"}}>
+        <span style={filter==="all"?S.btnDk:S.btn} onClick={function(){setFilter("all")}}>ALL</span>
+        {lines.map(function(w){return <span key={w.id} style={filter===w.id?S.btnDk:S.btn} onClick={function(){setFilter(w.id)}}>{w.name}</span>})}
+      </div>
+      <div style={S.card}>
+        {pending.length===0&&done.length===0&&<div style={{padding:28,textAlign:"center",color:CL.pale}}>{t.noTasks}</div>}
+        {pending.map(function(tk){return <TaskRow key={tk.id} tk={tk} lineName={ln(tk.work_line_id)} t={t} isDone={false} onCycle={cycle}/>})}
+        {done.length>0&&<div style={{padding:"12px 18px 4px"}}><span style={{fontSize:11,letterSpacing:2,color:CL.pale}}>{t.done}</span></div>}
+        {done.map(function(tk){return <TaskRow key={tk.id} tk={tk} lineName={ln(tk.work_line_id)} t={t} isDone={true} onCycle={cycle}/>})}
+      </div>
+    </div>
+  );
+}
+
+function WorkOverview({t}){
+  var active=W_TASKS.filter(function(x){return x.status!=="done"});
+  var ln=function(id){var f=W_LINES.find(function(l){return l.id===id});return f?f.name:""};
+  return (<div>
+    <div style={{...S.card,padding:"14px 24px",display:"flex",gap:32,marginBottom:20}}>
+      <div><span style={S.label}>{t.pending} </span><span style={{fontSize:20,color:CL.primary,marginLeft:6}}>{active.length}</span></div>
+      <div><span style={S.label}>IN PROGRESS </span><span style={{fontSize:20,color:CL.primary,marginLeft:6}}>{active.filter(function(x){return x.status==="in_progress"}).length}</span></div>
+      <div><span style={S.label}>{t.high} </span><span style={{fontSize:20,color:CL.dark,marginLeft:6}}>{active.filter(function(x){return x.priority==="high"}).length}</span></div>
+    </div>
+    <div style={{display:"flex",gap:16,marginBottom:24}}>
+      {W_LINES.map(function(wl){return(<div key={wl.id} style={{...S.card,padding:"18px 20px",flex:"1 1 0"}}>
+        <div style={{display:"flex",justifyContent:"space-between",marginBottom:10}}><span style={{fontSize:15}}>{wl.name}</span><span style={{fontSize:11,color:wl.status==="on_track"?CL.light:CL.gold,border:"1px solid",padding:"1px 8px"}}>{t[wl.status==="on_track"?"onTrack":"atRisk"]}</span></div>
+        <div style={{fontSize:28,color:CL.primary}}>{wl.key_metric_value}<span style={{fontSize:13,color:CL.muted,marginLeft:6}}>{wl.key_metric_unit}</span></div>
+        <div style={{fontSize:12,color:CL.muted,marginBottom:10}}>{wl.key_metric_label}</div>
+        {wl.next_action&&<div style={{fontSize:13,borderTop:"2px dashed "+CL.faint,paddingTop:10}}>→ {wl.next_action}</div>}
+      </div>)})}
+    </div>
+    <div style={S.secTitle}>{t.recentTasks}</div>
+    <div style={S.card}>{active.slice(0,5).map(function(tk){return <TaskRow key={tk.id} tk={tk} lineName={ln(tk.work_line_id)} t={t} isDone={false}/>})}</div>
+  </div>);
+}
+
+function WorkMetrics({t}){
+  var sorted=[].concat(W_METRICS).sort(function(a,b){return a.date.localeCompare(b.date)});
+  var l7=sorted.slice(-7),p7=sorted.slice(-14,-7);var sm=function(a,k){return a.reduce(function(s,m){return s+(m[k]||0)},0)};
+  var cmp=function(k){var c=sm(l7,k),p=sm(p7,k);if(!p)return{v:c,d:"flat",p:null};var pct=Math.round((c-p)/p*100);return{v:c,d:pct>0?"up":pct<0?"down":"flat",p:Math.abs(pct)}};
+  var recent=sorted.slice(-14);var maxV=Math.max.apply(null,recent.map(function(d){return Math.max(d.new_guanchayuan||0,d.new_chapin||0)}));if(maxV<10)maxV=10;
+  return (<div>
+    <div style={{...S.card,padding:20,marginBottom:20}}><div style={S.secTitle}>14 DAYS</div>
+      <div style={{height:140,display:"flex",alignItems:"flex-end",gap:4}}>{recent.map(function(d,i){return(<div key={i} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:2}}>
+        <div style={{display:"flex",gap:2,alignItems:"flex-end",height:120,width:"100%"}}><div style={{flex:1,height:Math.max(3,(d.new_guanchayuan||0)/maxV*120),background:CL.primary}}/><div style={{flex:1,height:Math.max(3,(d.new_chapin||0)/maxV*120),background:CL.gold}}/></div>
+        <span style={{fontSize:9,color:CL.pale}}>{d.date.slice(8)}</span></div>)})}</div>
+      <div style={{display:"flex",gap:20,marginTop:12,fontSize:12}}><span style={{display:"flex",alignItems:"center",gap:6}}><span style={{width:10,height:10,background:CL.primary}}/>{t.observers}</span><span style={{display:"flex",alignItems:"center",gap:6}}><span style={{width:10,height:10,background:CL.gold}}/>{t.reviews}</span></div></div>
+    <div style={{...S.card,padding:20,display:"flex",gap:40,flexWrap:"wrap"}}>{[["new_guanchayuan",t.observers],["new_chapin",t.reviews],["new_negative",t.negative]].map(function(arr){var c=cmp(arr[0]);return(<div key={arr[0]} style={{textAlign:"center"}}><div style={{...S.label,marginBottom:4}}>{arr[1]}</div><div style={{fontSize:26,color:CL.primary}}>{c.v}</div>{c.p!=null&&<span style={{fontSize:13,color:c.d==="up"?CL.light:CL.gold}}>{c.d==="up"?"↑":"↓"}{c.p}%</span>}</div>)})}</div>
+  </div>);
+}
+
+function WorkContext({t}){
+  return (<div>
+    <div style={{...S.card,padding:20,marginBottom:20}}><div style={S.secTitle}>{t.progress}</div>
+      {W_CTX.map(function(c){return(<div key={c.id} style={{display:"flex",gap:12,padding:"8px 0",borderBottom:"1px dashed "+CL.faint}}>
+        <span style={{fontSize:12,color:CL.pale,width:44,flexShrink:0}}>{fmtDate(c.created_at)}</span>
+        <span style={{fontSize:11,color:(TAG_C[c.tag]||CL.pale),border:"1px solid "+(TAG_C[c.tag]||CL.pale)+"60",padding:"1px 7px",flexShrink:0}}>{c.tag}</span>
+        <span style={{fontSize:14,color:CL.text,flex:1,lineHeight:1.5}}>{c.content}</span></div>)})}</div>
+    <div style={{...S.card,padding:20}}><div style={S.secTitle}>{t.decisions}</div>
+      {W_DECS.map(function(d){return(<div key={d.id} style={{padding:"10px 0 10px 14px",borderLeft:"3px solid "+CL.faint,marginBottom:10}}>
+        <div style={{fontSize:14}}>{d.decision}</div>{d.reasoning&&<div style={{fontSize:13,color:CL.muted,marginTop:4}}>{d.reasoning}</div>}
+        <div style={{fontSize:12,color:CL.pale,marginTop:4}}>{d.made_by} · {fmtDate(d.made_at)}</div></div>)})}</div>
+  </div>);
+}
+
+function LuxOverview({t}){
+  var act=L_LINES.filter(function(l){return l.status==="active"});var dn=L_LINES.filter(function(l){return l.status==="done"});
+  return (<div>
+    <div style={S.secTitle}>{t.projects} ({act.length})</div>
+    <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12,marginBottom:24}}>
+      {act.map(function(p){return(<div key={p.id} style={{...S.card,padding:"16px 18px"}}>
+        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}><span style={{fontSize:24}}>{p.icon}</span><div><div style={{fontSize:14}}>{p.name}</div><div style={{fontSize:11,color:CL.pale}}>{p.sub}</div></div></div>
+        <div style={{fontSize:13,marginBottom:8}}>{p.current}</div>
+        {p.next_action&&<div style={{fontSize:12,color:CL.muted,borderTop:"1px dashed "+CL.faint,paddingTop:8}}>→ {p.next_action}</div>}
+      </div>)})}
+    </div>
+    {dn.length>0&&<div><div style={S.secTitle}>{t.completed} ({dn.length})</div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12}}>
+        {dn.map(function(p){return(<div key={p.id} style={{...S.cardDim,padding:"16px 18px"}}>
+          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}><span style={{fontSize:24,opacity:0.4}}>{p.icon}</span><div><div style={{fontSize:14,color:CL.muted}}>{p.name}</div><div style={{fontSize:11,color:CL.border}}>{p.sub}</div></div></div>
+          <div style={{fontSize:13,color:CL.muted}}>{p.current}</div>
+        </div>)})}
+      </div></div>}
+  </div>);
+}
+
+function LuxIdeas({t}){
+  var [ideas,setIdeas]=useState(L_IDEAS_INIT);var [showDone,setShowDone]=useState(false);
+  var actv=ideas.filter(function(x){return x.status==="active"});var proc=ideas.filter(function(x){return x.status!=="active"});
+  var upd=function(id,st){setIdeas(function(prev){return prev.map(function(x){return x.id===id?Object.assign({},x,{status:st}):x})})};
+  return (<div>
+    <div style={S.card}>
+      {actv.map(function(idea){return(<div key={idea.id} style={{display:"flex",alignItems:"flex-start",padding:"12px 18px",borderBottom:"1px dashed "+CL.faint,gap:12}}>
+        <div style={{flex:1}}><div style={{fontSize:14,lineHeight:1.6}}>{idea.content}</div>
+          <div style={{display:"flex",gap:10,marginTop:6,alignItems:"center"}}><span style={{fontSize:12,color:CL.pale}}>{fmtDate(idea.created_at)}</span>
+            {idea.line_id&&<span style={{fontSize:11,color:CL.light,border:"1px solid "+CL.faint,padding:"0 6px"}}>{(L_LINES.find(function(l){return l.id===idea.line_id})||{}).name||""}</span>}</div></div>
+        <div style={{display:"flex",gap:4,flexShrink:0,paddingTop:2}}>
+          <span onClick={function(){upd(idea.id,"adopted")}} style={{...S.btnSm,fontSize:11,padding:"2px 8px",color:CL.light,borderColor:CL.faint,cursor:"pointer"}} title={t.adopt}>✓</span>
+          <span onClick={function(){upd(idea.id,"dropped")}} style={{...S.btnSm,fontSize:11,padding:"2px 8px",color:CL.muted,borderColor:CL.faint,cursor:"pointer"}} title={t.drop}>×</span>
+        </div>
+      </div>)})}
+      {actv.length===0&&<div style={{padding:28,textAlign:"center",color:CL.pale}}>{t.noIdeas}</div>}
+    </div>
+    {proc.length>0&&<div style={{marginTop:16}}>
+      <span onClick={function(){setShowDone(!showDone)}} style={{fontSize:12,color:CL.pale,cursor:"pointer",letterSpacing:1}}>{showDone?"▲":"▸"} {t.processed} ({proc.length})</span>
+      {showDone&&<div style={{...S.cardDim,marginTop:8}}>
+        {proc.map(function(idea){return(<div key={idea.id} style={{display:"flex",padding:"8px 18px",borderBottom:"1px dashed #e8e8e8",gap:12,alignItems:"center"}}>
+          <span style={{fontSize:11,color:idea.status==="adopted"?CL.gold:CL.border,width:32,flexShrink:0}}>{idea.status==="adopted"?t.adopt:t.drop}</span>
+          <span style={{fontSize:13,color:CL.muted,flex:1}}>{idea.content}</span>
+          <span style={{fontSize:11,color:CL.border}}>{fmtDate(idea.created_at)}</span></div>)})}
+      </div>}</div>}
+  </div>);
+}
+
+function IrisOverview({t}){
+  return (<div>
+    <div style={{display:"flex",gap:16,marginBottom:24,flexWrap:"wrap"}}>
+      {I_LINES.map(function(wl){return(<div key={wl.id} style={{...S.card,padding:"18px 20px",flex:"1 1 280px"}}>
+        <div style={{fontSize:15,marginBottom:12}}>{wl.name}</div>
+        <div style={{marginBottom:8}}><div style={{fontSize:11,letterSpacing:1,color:CL.gold,marginBottom:3}}>{t.direction}</div><div style={{fontSize:13}}>{wl.direction}</div></div>
+        <div style={{marginBottom:8}}><div style={{fontSize:11,letterSpacing:1,color:CL.light,marginBottom:3}}>{t.current}</div><div style={{fontSize:13}}>{wl.current}</div></div>
+        <div style={{borderTop:"2px dashed "+CL.faint,paddingTop:8}}><div style={{fontSize:11,letterSpacing:1,color:CL.pale,marginBottom:3}}>{t.nextStep}</div><div style={{fontSize:13}}>→ {wl.next_action}</div></div>
+      </div>)})}
+    </div>
+    <div style={S.secTitle}>{t.recentLearn}</div>
+    <div style={S.card}>{I_LEARN.slice(0,3).map(function(l){return(<div key={l.id} style={{padding:"12px 18px",borderBottom:"1px dashed "+CL.faint}}>
+      <div style={{fontSize:14,lineHeight:1.6}}>{l.content}</div>
+      <div style={{display:"flex",gap:10,marginTop:6,alignItems:"center",flexWrap:"wrap"}}><span style={{fontSize:12,color:CL.pale}}>{fmtDate(l.created_at)}</span>
+        {l.source&&<span style={{fontSize:12,color:CL.muted}}>· {l.source}</span>}
+        {l.tags&&l.tags.map(function(tg){return <span key={tg} style={{fontSize:11,color:CL.light,border:"1px solid "+CL.faint,padding:"0 6px"}}>{tg}</span>})}</div></div>)})}</div>
+  </div>);
+}
+
+function LearnPage({t}){
+  var last="";
+  return (<div>{I_LEARN.map(function(l){var show=l.created_at!==last;last=l.created_at;return(<div key={l.id}>
+    {show&&<div style={{fontSize:12,color:CL.muted,padding:"14px 0 4px",display:"flex",alignItems:"center",gap:8}}><span style={{width:6,height:6,background:CL.gold}}/>{l.created_at}</div>}
+    <div style={{padding:"10px 0 10px 18px",borderLeft:"2px solid "+CL.faint}}>
+      <div style={{fontSize:14,lineHeight:1.7}}>{l.content}</div>
+      <div style={{display:"flex",gap:10,marginTop:6,alignItems:"center",flexWrap:"wrap"}}>
+        {l.source&&<span style={{fontSize:12,color:CL.muted}}>{l.source}</span>}
+        {l.tags&&l.tags.map(function(tg){return <span key={tg} style={{fontSize:11,color:CL.light,border:"1px solid "+CL.faint,padding:"0 6px"}}>{tg}</span>})}</div></div></div>)})}</div>);
+}
+
+function QuickAdd({system,t}){
+  var [open,setOpen]=useState(false);var [more,setMore]=useState(false);
+  var [tv,setTv]=useState("");var [twl,setTwl]=useState("");
+  var [mf,setMf]=useState({a:"",b:"",c:"",neg:"",active:"",conv:"",notes:""});
+  var [lc,setLc]=useState("");var [ls,setLs]=useState("");
+  var [ic,setIc]=useState("");var [il,setIl]=useState("");
+  var lines=system==="work"?W_LINES:system==="lux"?L_LINES:I_LINES;
+
+  if(!open) return (<div onClick={function(){setOpen(true)}} style={{position:"fixed",bottom:0,left:0,right:0,background:CL.primary,color:CL.wash,padding:"14px 24px",fontSize:13,cursor:"pointer",textAlign:"center",letterSpacing:3,boxShadow:"0 -2px 0 "+CL.dark,zIndex:50}}>+ QUICK ADD</div>);
+
+  return (<div style={{position:"fixed",bottom:0,left:0,right:0,background:CL.card,border:"2px solid "+CL.primary,borderBottom:"none",padding:"18px 28px",boxShadow:"0 -4px 12px rgba(26,45,92,.1)",zIndex:50}}>
+    <div style={{maxWidth:1100,margin:"0 auto",display:"flex",gap:20,alignItems:"flex-end",flexWrap:"wrap"}}>
+
+      {system==="work"&&<React.Fragment>
+        <div style={{flex:1,minWidth:240}}>
+          <div style={{...S.label,marginBottom:8}}>数据</div>
+          <div style={{display:"flex",gap:10}}>
+            <div style={{flex:1}}><div style={{fontSize:10,color:CL.muted,marginBottom:3}}>{t.observers}</div><input type="number" value={mf.a} onChange={function(e){setMf(Object.assign({},mf,{a:e.target.value}))}} style={{...S.input,fontSize:13}}/></div>
+            <div style={{flex:1}}><div style={{fontSize:10,color:CL.muted,marginBottom:3}}>{t.reviews}</div><input type="number" value={mf.b} onChange={function(e){setMf(Object.assign({},mf,{b:e.target.value}))}} style={{...S.input,fontSize:13}}/></div>
+            <div style={{flex:1}}><div style={{fontSize:10,color:CL.gold,marginBottom:3}}>{t.curated}</div><input type="number" value={mf.c} onChange={function(e){setMf(Object.assign({},mf,{c:e.target.value}))}} style={{...S.input,fontSize:13,color:CL.gold}}/></div>
+            <span style={{...S.btnDk,alignSelf:"flex-end"}}>{t.save}</span>
+          </div>
+          {more&&<div style={{display:"flex",gap:10,marginTop:10}}>
+            <div style={{flex:1}}><div style={{fontSize:10,color:CL.muted,marginBottom:3}}>{t.negative}</div><input type="number" value={mf.neg} onChange={function(e){setMf(Object.assign({},mf,{neg:e.target.value}))}} style={{...S.input,fontSize:13}}/></div>
+            <div style={{flex:1}}><div style={{fontSize:10,color:CL.muted,marginBottom:3}}>{t.active}</div><input type="number" value={mf.active} onChange={function(e){setMf(Object.assign({},mf,{active:e.target.value}))}} style={{...S.input,fontSize:13}}/></div>
+            <div style={{flex:1}}><div style={{fontSize:10,color:CL.muted,marginBottom:3}}>{t.convRate}</div><input type="number" step="0.1" value={mf.conv} onChange={function(e){setMf(Object.assign({},mf,{conv:e.target.value}))}} style={{...S.input,fontSize:13}}/></div>
+            <div style={{flex:2}}><div style={{fontSize:10,color:CL.muted,marginBottom:3}}>{t.notes}</div><input value={mf.notes} onChange={function(e){setMf(Object.assign({},mf,{notes:e.target.value}))}} style={{...S.input,fontSize:13}}/></div>
+          </div>}
+          <span style={{fontSize:11,color:CL.pale,cursor:"pointer",marginTop:6,display:"inline-block"}} onClick={function(){setMore(!more)}}>{more?t.less:t.more}</span>
+        </div><div style={{width:1,height:44,background:CL.faint}}/>
+      </React.Fragment>}
+
+      {system==="iris"&&<React.Fragment>
+        <div style={{flex:1,minWidth:240}}>
+          <div style={{...S.label,marginBottom:8}}>{t.learn}</div>
+          <div style={{display:"flex",gap:10}}>
+            <input value={lc} onChange={function(e){setLc(e.target.value)}} placeholder="今天理解了什么..." style={{...S.input,flex:2,fontSize:13}}/>
+            <input value={ls} onChange={function(e){setLs(e.target.value)}} placeholder={t.source} style={{...S.input,flex:1,fontSize:12}}/>
+            <span style={S.btnDk}>{t.addLearn}</span>
+          </div>
+        </div><div style={{width:1,height:44,background:CL.faint}}/>
+      </React.Fragment>}
+
+      {system==="lux"&&<React.Fragment>
+        <div style={{flex:1,minWidth:240}}>
+          <div style={{...S.label,marginBottom:8}}>{t.ideaLabel||t.ideas}</div>
+          <div style={{display:"flex",gap:10}}>
+            <input value={ic} onChange={function(e){setIc(e.target.value)}} placeholder={t.ideaPh} style={{...S.input,flex:2,fontSize:13}}/>
+            <select value={il} onChange={function(e){setIl(e.target.value)}} style={{...S.input,width:120,fontSize:12}}><option value="">项目</option>{L_LINES.filter(function(l){return l.status==="active"}).map(function(l){return <option key={l.id} value={l.id}>{l.name}</option>})}</select>
+            <span style={S.btnDk}>{t.addIdea}</span>
+          </div>
+        </div><div style={{width:1,height:44,background:CL.faint}}/>
+      </React.Fragment>}
+
+      <div style={{flex:1,minWidth:240}}>
+        <div style={{...S.label,marginBottom:8}}>{t.tasks}</div>
+        <div style={{display:"flex",gap:10}}>
+          <input placeholder={t.newTask} value={tv} onChange={function(e){setTv(e.target.value)}} style={{...S.input,flex:1,fontSize:13}}/>
+          <select value={twl} onChange={function(e){setTwl(e.target.value)}} style={{...S.input,width:100,fontSize:12}}><option value="">—</option>{lines.map(function(w){return <option key={w.id} value={w.id}>{w.name||w.sub}</option>})}</select>
+          <span style={S.btnDk}>+</span>
+        </div>
+      </div>
+      <span style={{...S.btnSm,alignSelf:"flex-end"}} onClick={function(){setOpen(false)}}>×</span>
+    </div>
+  </div>);
+}
+
+function App(){
+  var [system,setSystem]=useState("work");
+  var [page,setPage]=useState("overview");
+  var [lang,setLang]=useState("zh");
+  var t=TX[lang];
+  return (
+    <div>
+      <SysTabs system={system} setSystem={setSystem} setPage={setPage}/>
+      <div style={{maxWidth:1100,margin:"0 auto",padding:"28px 32px 90px",marginLeft:90}}>
+        <Nav page={page} setPage={setPage} lang={lang} setLang={setLang} t={t} system={system}/>
+        {system==="work"&&<React.Fragment>{page==="overview"&&<WorkOverview t={t}/>}{page==="tasks"&&<TasksList tasks={W_TASKS} lines={W_LINES} t={t}/>}{page==="metrics"&&<WorkMetrics t={t}/>}{page==="context"&&<WorkContext t={t}/>}</React.Fragment>}
+        {system==="lux"&&<React.Fragment>{page==="overview"&&<LuxOverview t={t}/>}{page==="tasks"&&<TasksList tasks={L_TASKS} lines={L_LINES} t={t}/>}{page==="ideas"&&<LuxIdeas t={t}/>}</React.Fragment>}
+        {system==="iris"&&<React.Fragment>{page==="overview"&&<IrisOverview t={t}/>}{page==="tasks"&&<TasksList tasks={I_TASKS} lines={I_LINES} t={t}/>}{page==="learn"&&<LearnPage t={t}/>}</React.Fragment>}
+        <div style={{textAlign:"center",padding:"24px 0"}}><span style={{fontSize:11,letterSpacing:3,color:CL.muted}}>{t.footer}</span></div>
+      </div>
+      <QuickAdd system={system} t={t}/>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
