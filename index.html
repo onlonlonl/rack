@@ -35,7 +35,7 @@ const S={
   btnSm:{padding:"4px 10px",border:"2px solid "+CL.primary,background:CL.card,color:CL.primary,fontSize:11,cursor:"pointer",fontFamily:"inherit"},
   input:{width:"100%",padding:"8px 10px",border:"2px solid "+CL.primary,background:CL.card,fontFamily:"inherit",fontSize:14,color:CL.primary,outline:"none",boxSizing:"border-box"},
   label:{fontSize:12,color:CL.muted,letterSpacing:1},
-  secTitle:{fontSize:12,letterSpacing:2,color:CL.pale,marginBottom:10,paddingBottom:6,borderBottom:"2px dashed "+CL.faint}
+  secTitle:{fontSize:12,letterSpacing:2,color:CL.pale,marginBottom:6,paddingBottom:4,borderBottom:"2px dashed "+CL.faint}
 };
 const TX={
   en:{overview:"OVERVIEW",tasks:"TASKS",metrics:"METRICS",context:"CONTEXT",learn:"LEARN",ideas:"IDEAS",high:"HIGH",med:"MED",low:"LOW",pending:"PENDING",done:"DONE",noTasks:"no tasks",recentTasks:"RECENT TASKS",progress:"PROGRESS",decisions:"DECISIONS",footer:"RACK · Built with # by Iris & Claude",save:"SAVE",more:"\u25bc more",less:"\u25b2 less",quickAdd:"+ QUICK ADD",newTask:"+ new task...",observers:"OBSERVERS",reviews:"REVIEWS",curated:"CURATED",negative:"NEGATIVE",active:"ACTIVE",convRate:"CONV %",notes:"NOTES",onTrack:"ON TRACK",atRisk:"AT RISK",blocked:"BLOCKED",direction:"DIRECTION",current:"NOW",nextStep:"NEXT",recentLearn:"RECENT LEARNINGS",noLearn:"nothing yet",addLearn:"ADD",source:"source",addIdea:"ADD",ideaPh:"new idea...",noIdeas:"no ideas yet",projects:"PROJECTS",completed:"COMPLETED",processed:"PROCESSED",adopt:"adopt",drop:"drop",ideaLabel:"IDEA",loading:"loading...",connect:"CONNECT",urlPh:"Supabase URL",keyPh:"Anon Key",connectBtn:"CONNECT",connectErr:"connection failed",noData:"no data yet"},
@@ -80,10 +80,10 @@ function ConnectScreen({onConnect,t}){
   }
   return (<div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}}>
     <div style={{...S.card,padding:32,width:380,textAlign:"center"}}>
-      <div style={{fontSize:20,color:CL.dark,letterSpacing:3,marginBottom:24}}>RACK <span style={{color:CL.gold}}>#</span></div>
+      <div style={{fontSize:20,color:CL.dark,letterSpacing:3,marginBottom:10}}>RACK <span style={{color:CL.gold}}>#</span></div>
       <input value={url} onChange={function(e){setUrl(e.target.value)}} placeholder={t.urlPh} style={{...S.input,marginBottom:10,fontSize:13}}/>
-      <input value={key} onChange={function(e){setKey(e.target.value)}} placeholder={t.keyPh} type="password" style={{...S.input,marginBottom:14,fontSize:13}}/>
-      {err&&<div style={{color:"#c45555",fontSize:12,marginBottom:8}}>{err}</div>}
+      <input value={key} onChange={function(e){setKey(e.target.value)}} placeholder={t.keyPh} type="password" style={{...S.input,marginBottom:6,fontSize:13}}/>
+      {err&&<div style={{color:"#c45555",fontSize:12,marginBottom:6}}>{err}</div>}
       <span onClick={go} style={{...S.btnDk,width:"100%",display:"block",textAlign:"center",padding:"10px 0"}}>{loading?t.loading:t.connectBtn}</span>
     </div>
   </div>);
@@ -99,7 +99,7 @@ function SysTabs({system,setSystem,setPage}){
 }
 function Nav({page,setPage,lang,setLang,t,system}){
   var tabMap={work:[["overview",t.overview],["tasks",t.tasks],["metrics",t.metrics],["context",t.context]],lux:[["overview",t.overview],["tasks",t.tasks],["ideas",t.ideas]],iris:[["overview",t.overview],["tasks",t.tasks],["learn",t.learn]]};
-  return (<div style={{...S.card,padding:"12px 20px",display:"flex",alignItems:"center",gap:14,marginBottom:20,flexWrap:"wrap"}}>
+  return (<div style={{...S.card,padding:"12px 20px",display:"flex",alignItems:"center",gap:14,marginBottom:10,flexWrap:"wrap"}}>
     <span style={{fontSize:16,color:CL.dark,marginRight:8}}>RACK <span style={{color:CL.gold}}>#</span></span>
     <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>{(tabMap[system]||[]).map(function(arr){return <span key={arr[0]} style={page===arr[0]?S.btnDk:S.btn} onClick={function(){setPage(arr[0])}}>{arr[1]}</span>})}</div>
     <div style={{marginLeft:"auto",display:"flex",alignItems:"center",gap:10}}>
@@ -145,15 +145,15 @@ function WorkOverview({lines,tasks,t,onCycle}){
   var active=tasks.filter(function(x){return x.status!=="done"&&!x.is_archived});
   var ln=function(id){var f=lines.find(function(l){return l.id===id});return f?f.name:""};
   return (<div>
-    <div style={{...S.card,padding:"14px 24px",display:"flex",gap:32,marginBottom:20}}>
-      <div><span style={S.label}>{t.pending} </span><span style={{fontSize:20,color:CL.primary,marginLeft:6}}>{active.length}</span></div>
-      <div><span style={S.label}>IN PROGRESS </span><span style={{fontSize:20,color:CL.primary,marginLeft:6}}>{active.filter(function(x){return x.status==="in_progress"}).length}</span></div>
+    <div style={{...S.card,padding:"8px 16px",display:"flex",gap:20,marginBottom:10}}>
+      <div><span style={S.label}>{t.pending} </span><span style={{fontSize:16,color:CL.primary,marginLeft:6}}>{active.length}</span></div>
+      <div><span style={S.label}>IN PROGRESS </span><span style={{fontSize:16,color:CL.primary,marginLeft:6}}>{active.filter(function(x){return x.status==="in_progress"}).length}</span></div>
       <div><span style={S.label}>{t.high} </span><span style={{fontSize:20,color:CL.dark,marginLeft:6}}>{active.filter(function(x){return x.priority==="high"}).length}</span></div>
     </div>
-    <div style={{display:"flex",gap:16,marginBottom:24}}>
-      {lines.map(function(wl){return(<div key={wl.id} style={{...S.card,padding:"18px 20px",flex:"1 1 0"}}>
+    <div style={{display:"flex",gap:10,marginBottom:10}}>
+      {lines.map(function(wl){return(<div key={wl.id} style={{...S.card,padding:"10px 14px",flex:"1 1 0"}}>
         <div style={{display:"flex",justifyContent:"space-between",marginBottom:10}}><span style={{fontSize:15}}>{wl.name}</span><span style={{fontSize:11,color:STAT_C[wl.status]||CL.light,border:"1px solid",padding:"1px 8px"}}>{t[wl.status==="on_track"?"onTrack":wl.status==="at_risk"?"atRisk":"blocked"]||wl.status}</span></div>
-        {wl.key_metric_value!=null&&<div style={{fontSize:28,color:CL.primary}}>{wl.key_metric_value}<span style={{fontSize:13,color:CL.muted,marginLeft:6}}>{wl.key_metric_unit||""}</span></div>}
+        {wl.key_metric_value!=null&&<div style={{fontSize:16,color:CL.primary}}>{wl.key_metric_value}<span style={{fontSize:13,color:CL.muted,marginLeft:6}}>{wl.key_metric_unit||""}</span></div>}
         {wl.key_metric_label&&<div style={{fontSize:12,color:CL.muted,marginBottom:10}}>{wl.key_metric_label}</div>}
         {wl.next_action&&<div style={{fontSize:13,borderTop:"2px dashed "+CL.faint,paddingTop:10}}>{"\u2192"} {wl.next_action}</div>}
       </div>)})}
@@ -169,24 +169,24 @@ function WorkMetrics({metrics,t}){
   var recent=sorted.slice(-14);var maxV=Math.max.apply(null,recent.map(function(d){return Math.max(d.new_guanchayuan||0,d.new_chapin||0)}));if(maxV<10)maxV=10;
   if(recent.length===0)return <div style={{...S.card,padding:28,textAlign:"center",color:CL.pale}}>{t.noData}</div>;
   return (<div>
-    <div style={{...S.card,padding:20,marginBottom:20}}><div style={S.secTitle}>14 DAYS</div>
-      <div style={{height:140,display:"flex",alignItems:"flex-end",gap:4}}>{recent.map(function(d,i){return(<div key={i} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:2}}>
-        <div style={{display:"flex",gap:2,alignItems:"flex-end",height:120,width:"100%"}}><div style={{flex:1,height:Math.max(3,(d.new_guanchayuan||0)/maxV*120),background:CL.primary}}/><div style={{flex:1,height:Math.max(3,(d.new_chapin||0)/maxV*120),background:CL.gold}}/></div>
+    <div style={{...S.card,padding:14,marginBottom:10}}><div style={S.secTitle}>14 DAYS</div>
+      <div style={{height:100,display:"flex",alignItems:"flex-end",gap:4}}>{recent.map(function(d,i){return(<div key={i} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:2}}>
+        <div style={{display:"flex",gap:2,alignItems:"flex-end",height:80,width:"100%"}}><div style={{flex:1,height:Math.max(3,(d.new_guanchayuan||0)/maxV*120),background:CL.primary}}/><div style={{flex:1,height:Math.max(3,(d.new_chapin||0)/maxV*120),background:CL.gold}}/></div>
         <span style={{fontSize:9,color:CL.pale}}>{d.date.slice(8)}</span></div>)})}</div>
       <div style={{display:"flex",gap:20,marginTop:12,fontSize:12}}><span style={{display:"flex",alignItems:"center",gap:6}}><span style={{width:10,height:10,background:CL.primary}}/>{t.observers}</span><span style={{display:"flex",alignItems:"center",gap:6}}><span style={{width:10,height:10,background:CL.gold}}/>{t.reviews}</span></div></div>
-    <div style={{...S.card,padding:20,display:"flex",gap:40,flexWrap:"wrap"}}>{[["new_guanchayuan",t.observers],["new_chapin",t.reviews],["new_negative",t.negative]].map(function(arr){var c=cmp(arr[0]);return(<div key={arr[0]} style={{textAlign:"center"}}><div style={{...S.label,marginBottom:4}}>{arr[1]}</div><div style={{fontSize:26,color:CL.primary}}>{c.v}</div>{c.p!=null&&<span style={{fontSize:13,color:c.d==="up"?CL.light:CL.gold}}>{c.d==="up"?"\u2191":"\u2193"}{c.p}%</span>}</div>)})}</div>
+    <div style={{...S.card,padding:14,display:"flex",gap:40,flexWrap:"wrap"}}>{[["new_guanchayuan",t.observers],["new_chapin",t.reviews],["new_negative",t.negative]].map(function(arr){var c=cmp(arr[0]);return(<div key={arr[0]} style={{textAlign:"center"}}><div style={{...S.label,marginBottom:4}}>{arr[1]}</div><div style={{fontSize:20,color:CL.primary}}>{c.v}</div>{c.p!=null&&<span style={{fontSize:13,color:c.d==="up"?CL.light:CL.gold}}>{c.d==="up"?"\u2191":"\u2193"}{c.p}%</span>}</div>)})}</div>
   </div>);
 }
 function WorkContext({contextItems,decisions,t}){
   return (<div>
-    <div style={{...S.card,padding:20,marginBottom:20}}><div style={S.secTitle}>{t.progress}</div>
+    <div style={{...S.card,padding:14,marginBottom:10}}><div style={S.secTitle}>{t.progress}</div>
       {contextItems.map(function(c){return(<div key={c.id} style={{display:"flex",gap:12,padding:"8px 0",borderBottom:"1px dashed "+CL.faint}}>
         <span style={{fontSize:12,color:CL.pale,width:44,flexShrink:0}}>{fmtDate(c.created_at)}</span>
         <span style={{fontSize:11,color:(TAG_C[c.type]||TAG_C[c.tag]||CL.pale),border:"1px solid "+(TAG_C[c.type]||TAG_C[c.tag]||CL.pale)+"60",padding:"1px 7px",flexShrink:0}}>{c.type||c.tag||""}</span>
         <span style={{fontSize:14,color:CL.text,flex:1,lineHeight:1.5}}>{c.content}</span></div>)})}
       {contextItems.length===0&&<div style={{padding:16,textAlign:"center",color:CL.pale}}>{"\u2014"}</div>}
     </div>
-    <div style={{...S.card,padding:20}}><div style={S.secTitle}>{t.decisions}</div>
+    <div style={{...S.card,padding:14}}><div style={S.secTitle}>{t.decisions}</div>
       {decisions.map(function(d){return(<div key={d.id} style={{padding:"10px 0 10px 14px",borderLeft:"3px solid "+CL.faint,marginBottom:10}}>
         <div style={{fontSize:14}}>{d.decision}</div>{d.reasoning&&<div style={{fontSize:13,color:CL.muted,marginTop:4}}>{d.reasoning}</div>}
         <div style={{fontSize:12,color:CL.pale,marginTop:4}}>{d.made_by||""} {"\u00b7"} {fmtDate(d.made_at)}</div></div>)})}
@@ -200,15 +200,15 @@ function LuxOverview({lines,t}){
   var act=lines.filter(function(l){return l.status!=="done"});var dn=lines.filter(function(l){return l.status==="done"});
   return (<div>
     <div style={S.secTitle}>{t.projects} ({act.length})</div>
-    <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12,marginBottom:24}}>
-      {act.map(function(p){return(<div key={p.id} style={{...S.card,padding:"16px 18px"}}>
+    <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12,marginBottom:10}}>
+      {act.map(function(p){return(<div key={p.id} style={{...S.card,padding:"10px 14px"}}>
         <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>{p.icon&&<span style={{fontSize:24}}>{p.icon}</span>}<div><div style={{fontSize:14}}>{p.name}</div>{p.description&&<div style={{fontSize:11,color:CL.pale}}>{p.description}</div>}</div></div>
-        {p.next_action&&<div style={{fontSize:13,marginBottom:8}}>{p.next_action}</div>}
+        {p.next_action&&<div style={{fontSize:13,marginBottom:6}}>{p.next_action}</div>}
       </div>)})}
     </div>
     {dn.length>0&&<div><div style={S.secTitle}>{t.completed} ({dn.length})</div>
       <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12}}>
-        {dn.map(function(p){return(<div key={p.id} style={{...S.cardDim,padding:"16px 18px"}}>
+        {dn.map(function(p){return(<div key={p.id} style={{...S.cardDim,padding:"10px 14px"}}>
           <div style={{display:"flex",alignItems:"center",gap:10}}>{p.icon&&<span style={{fontSize:24,opacity:0.4}}>{p.icon}</span>}<div><div style={{fontSize:14,color:CL.muted}}>{p.name}</div></div></div>
         </div>)})}
       </div></div>}
@@ -219,7 +219,7 @@ function LuxIdeas({ideas,linesAll,t,onAdopt,onDrop}){
   var actv=ideas.filter(function(x){return x.status==="active"});var proc=ideas.filter(function(x){return x.status!=="active"});
   return (<div>
     <div style={S.card}>
-      {actv.map(function(idea){return(<div key={idea.id} style={{display:"flex",alignItems:"flex-start",padding:"12px 18px",borderBottom:"1px dashed "+CL.faint,gap:12}}>
+      {actv.map(function(idea){return(<div key={idea.id} style={{display:"flex",alignItems:"flex-start",padding:"8px 14px",borderBottom:"1px dashed "+CL.faint,gap:12}}>
         <div style={{flex:1}}><div style={{fontSize:14,lineHeight:1.6}}>{idea.content}</div>
           <div style={{display:"flex",gap:10,marginTop:6,alignItems:"center"}}><span style={{fontSize:12,color:CL.pale}}>{fmtDate(idea.created_at)}</span>
             {idea.line_id&&<span style={{fontSize:11,color:CL.light,border:"1px solid "+CL.faint,padding:"0 6px"}}>{(linesAll.find(function(l){return l.id===idea.line_id})||{}).name||""}</span>}</div></div>
@@ -244,15 +244,15 @@ function LuxIdeas({ideas,linesAll,t,onAdopt,onDrop}){
 // ===== IRIS PAGES =====
 function IrisOverview({lines,learnings,t}){
   return (<div>
-    <div style={{display:"flex",gap:16,marginBottom:24,flexWrap:"wrap"}}>
-      {lines.map(function(wl){return(<div key={wl.id} style={{...S.card,padding:"18px 20px",flex:"1 1 280px"}}>
-        <div style={{fontSize:15,marginBottom:12}}>{wl.name}</div>
-        {wl.direction&&<div style={{marginBottom:8}}><div style={{fontSize:11,letterSpacing:1,color:CL.gold,marginBottom:3}}>{t.direction}</div><div style={{fontSize:13}}>{wl.direction}</div></div>}
+    <div style={{display:"flex",gap:10,marginBottom:10,flexWrap:"wrap"}}>
+      {lines.map(function(wl){return(<div key={wl.id} style={{...S.card,padding:"10px 14px",flex:"1 1 280px"}}>
+        <div style={{fontSize:15,marginBottom:6}}>{wl.name}</div>
+        {wl.direction&&<div style={{marginBottom:6}}><div style={{fontSize:11,letterSpacing:1,color:CL.gold,marginBottom:3}}>{t.direction}</div><div style={{fontSize:13}}>{wl.direction}</div></div>}
         {wl.next_action&&<div style={{borderTop:"2px dashed "+CL.faint,paddingTop:8}}><div style={{fontSize:11,letterSpacing:1,color:CL.pale,marginBottom:3}}>{t.nextStep}</div><div style={{fontSize:13}}>{"\u2192"} {wl.next_action}</div></div>}
       </div>)})}
     </div>
     <div style={S.secTitle}>{t.recentLearn}</div>
-    <div style={S.card}>{learnings.slice(0,3).map(function(l){return(<div key={l.id} style={{padding:"12px 18px",borderBottom:"1px dashed "+CL.faint}}>
+    <div style={S.card}>{learnings.slice(0,3).map(function(l){return(<div key={l.id} style={{padding:"8px 14px",borderBottom:"1px dashed "+CL.faint}}>
       <div style={{fontSize:14,lineHeight:1.6}}>{l.content}</div>
       <div style={{display:"flex",gap:10,marginTop:6,alignItems:"center",flexWrap:"wrap"}}><span style={{fontSize:12,color:CL.pale}}>{fmtDate(l.created_at)}</span>
         {l.source&&<span style={{fontSize:12,color:CL.muted}}>{"\u00b7"} {l.source}</span>}
@@ -281,12 +281,12 @@ function QuickAdd({system,t,lines,refresh}){
   async function saveMetrics(){var r={date:today(),new_guanchayuan:parseInt(mf.a)||0,new_chapin:parseInt(mf.b)||0,curated_chapin:parseInt(mf.c)||0};if(more){r.new_negative=parseInt(mf.neg)||0;r.active_guanchayuan=parseInt(mf.active)||0;r.conversion_rate=parseFloat(mf.conv)||null;r.notes=mf.notes||null}await upsertRow("daily_metrics",r,"date");setMf({a:"",b:"",c:"",neg:"",active:"",conv:"",notes:""});refresh()}
   async function addLearn(){if(!lc.trim())return;await insertRow("learnings",{content:lc.trim(),source:ls.trim()||null,category:"self"});setLc("");setLs("");refresh()}
   async function addIdea(){if(!ic.trim())return;await insertRow("ideas",{content:ic.trim(),line_id:il||null,category:"lux"});setIc("");setIl("");refresh()}
-  if(!open)return(<div onClick={function(){setOpen(true)}} style={{position:"fixed",bottom:0,left:0,right:0,background:CL.primary,color:CL.wash,padding:"14px 24px",fontSize:13,cursor:"pointer",textAlign:"center",letterSpacing:3,boxShadow:"0 -2px 0 "+CL.dark,zIndex:50}}>+ QUICK ADD</div>);
+  if(!open)return(<div onClick={function(){setOpen(true)}} style={{position:"fixed",bottom:0,left:0,right:0,background:CL.primary,color:CL.wash,padding:"8px 16px",fontSize:13,cursor:"pointer",textAlign:"center",letterSpacing:3,boxShadow:"0 -2px 0 "+CL.dark,zIndex:50}}>+ QUICK ADD</div>);
   return(<div style={{position:"fixed",bottom:0,left:0,right:0,background:CL.card,border:"2px solid "+CL.primary,borderBottom:"none",padding:"18px 28px",boxShadow:"0 -4px 12px rgba(26,45,92,.1)",zIndex:50}}>
     <div style={{maxWidth:1100,margin:"0 auto",display:"flex",gap:20,alignItems:"flex-end",flexWrap:"wrap"}}>
       {system==="work"&&<React.Fragment>
         <div style={{flex:1,minWidth:240}}>
-          <div style={{...S.label,marginBottom:8}}>{t.metrics}</div>
+          <div style={{...S.label,marginBottom:6}}>{t.metrics}</div>
           <div style={{display:"flex",gap:10}}>
             <div style={{flex:1}}><div style={{fontSize:10,color:CL.muted,marginBottom:3}}>{t.observers}</div><input type="number" value={mf.a} onChange={function(e){setMf(Object.assign({},mf,{a:e.target.value}))}} style={{...S.input,fontSize:13}}/></div>
             <div style={{flex:1}}><div style={{fontSize:10,color:CL.muted,marginBottom:3}}>{t.reviews}</div><input type="number" value={mf.b} onChange={function(e){setMf(Object.assign({},mf,{b:e.target.value}))}} style={{...S.input,fontSize:13}}/></div>
@@ -304,7 +304,7 @@ function QuickAdd({system,t,lines,refresh}){
       </React.Fragment>}
       {system==="iris"&&<React.Fragment>
         <div style={{flex:1,minWidth:240}}>
-          <div style={{...S.label,marginBottom:8}}>{t.learn}</div>
+          <div style={{...S.label,marginBottom:6}}>{t.learn}</div>
           <div style={{display:"flex",gap:10}}>
             <input value={lc} onChange={function(e){setLc(e.target.value)}} placeholder="\u4eca\u5929\u7406\u89e3\u4e86\u4ec0\u4e48..." style={{...S.input,flex:2,fontSize:13}}/>
             <input value={ls} onChange={function(e){setLs(e.target.value)}} placeholder={t.source} style={{...S.input,flex:1,fontSize:12}}/>
@@ -314,7 +314,7 @@ function QuickAdd({system,t,lines,refresh}){
       </React.Fragment>}
       {system==="lux"&&<React.Fragment>
         <div style={{flex:1,minWidth:240}}>
-          <div style={{...S.label,marginBottom:8}}>{t.ideaLabel||t.ideas}</div>
+          <div style={{...S.label,marginBottom:6}}>{t.ideaLabel||t.ideas}</div>
           <div style={{display:"flex",gap:10}}>
             <input value={ic} onChange={function(e){setIc(e.target.value)}} placeholder={t.ideaPh} style={{...S.input,flex:2,fontSize:13}}/>
             <select value={il} onChange={function(e){setIl(e.target.value)}} style={{...S.input,width:120,fontSize:12}}><option value="">{"\u9879\u76ee"}</option>{lines.filter(function(l){return l.status!=="done"}).map(function(l){return <option key={l.id} value={l.id}>{l.name}</option>})}</select>
@@ -323,7 +323,7 @@ function QuickAdd({system,t,lines,refresh}){
         </div><div style={{width:1,height:44,background:CL.faint}}/>
       </React.Fragment>}
       <div style={{flex:1,minWidth:240}}>
-        <div style={{...S.label,marginBottom:8}}>{t.tasks}</div>
+        <div style={{...S.label,marginBottom:6}}>{t.tasks}</div>
         <div style={{display:"flex",gap:10}}>
           <input placeholder={t.newTask} value={tv} onChange={function(e){setTv(e.target.value)}} onKeyDown={function(e){if(e.key==="Enter")addTask()}} style={{...S.input,flex:1,fontSize:13}}/>
           <select value={twl} onChange={function(e){setTwl(e.target.value)}} style={{...S.input,width:100,fontSize:12}}><option value="">{"\u2014"}</option>{lines.map(function(w){return <option key={w.id} value={w.id}>{w.name}</option>})}</select>
@@ -390,7 +390,7 @@ function App(){
 
   return (<div>
     <SysTabs system={system} setSystem={setSystem} setPage={setPage}/>
-    <div style={{maxWidth:1100,margin:"0 auto",padding:"28px 32px 90px",marginLeft:90}}>
+    <div style={{maxWidth:1100,margin:"0 auto",padding:"16px 24px 64px",marginLeft:90}}>
       <Nav page={page} setPage={setPage} lang={lang} setLang={setLang} t={t} system={system}/>
       {system==="work"&&<React.Fragment>
         {page==="overview"&&<WorkOverview lines={curLines} tasks={curTasks} t={t} onCycle={cycleTask}/>}
