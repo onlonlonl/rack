@@ -7,18 +7,17 @@
 <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{font-family:'DotGothic16',monospace;background:#f0f0f0;overflow:hidden;height:100vh}
+body{font-family:'DotGothic16',monospace;background:#f0f0f0;overflow-x:hidden;background-image:radial-gradient(circle,#d8d8d8 1px,transparent 1px);background-size:16px 16px}
 input,textarea,button,select{font-family:'DotGothic16',monospace;-webkit-appearance:none;border-radius:0}
-#root{height:100vh;background:#f0f0f0;background-image:radial-gradient(circle,#d8d8d8 1px,transparent 1px);background-size:16px 16px;display:flex;flex-direction:column}
+#root{min-height:100vh}
 @keyframes pulse{0%,100%{opacity:.7;transform:scale(1)}50%{opacity:1;transform:scale(1.15)}}
 .sys-tabs{position:fixed;left:12px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;z-index:60;border:2px solid #2b4280;box-shadow:3px 3px 0 #c7d2ea}
-.sys-tab{padding:10px 10px;font-size:12px;letter-spacing:2px;cursor:pointer;text-align:center;border-bottom:1px solid #c7d2ea;min-width:56px}
+.sys-tab{padding:12px 12px;font-size:14px;letter-spacing:2px;cursor:pointer;text-align:center;border-bottom:1px solid #c7d2ea;min-width:60px}
 .sys-tab:last-child{border-bottom:none}
-.del-btn{opacity:0;transition:opacity .15s;cursor:pointer;font-size:11px;color:#c7d2ea;padding:0 4px}
-.del-btn:hover{color:#c45555}
-*:hover>.del-btn{opacity:1}
-.edit-input{border:none;border-bottom:2px solid #2b4280;background:transparent;font-family:inherit;outline:none;color:#222;width:100%}
-.page-fill{flex:1;overflow:auto;display:flex;flex-direction:column}
+.ha{opacity:0;transition:opacity .15s;display:flex;gap:4px;align-items:center}
+.hp:hover .ha{opacity:1}
+.ei{width:100%;padding:6px 8px;border:none;border-bottom:2px solid #2b4280;background:transparent;font-family:inherit;outline:none;color:#222;font-size:15px}
+@media(hover:none){.ha{opacity:1}}
 </style>
 </head>
 <body>
@@ -29,23 +28,24 @@ input,textarea,button,select{font-family:'DotGothic16',monospace;-webkit-appeara
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <script type="text/babel">
 const {useState,useEffect,useCallback}=React;
-const C={p:"#2b4280",dk:"#1a2d5c",lt:"#5571b8",pl:"#8a9fd4",fn:"#c7d2ea",ws:"#e8edf6",cd:"#fafafa",tx:"#222",mu:"#999",bd:"#ccc",sh:"#c7d2ea",gd:"#d4a03c",gl:"#e0c068"};
+const C={p:"#2b4280",dk:"#1a2d5c",lt:"#5571b8",pl:"#8a9fd4",fn:"#c7d2ea",ws:"#e8edf6",cd:"#fafafa",tx:"#222",mu:"#999",bd:"#ccc",sh:"#c7d2ea",gd:"#d4a03c",dn:"#c45555"};
+var ML="max(90px, calc(50vw - 550px))";
 const S={
   card:{background:C.cd,border:"2px solid "+C.p,boxShadow:"3px 3px 0 "+C.sh},
   cardDim:{background:C.cd,border:"2px solid "+C.bd,boxShadow:"2px 2px 0 #e0e0e0"},
-  btn:{padding:"5px 12px",border:"2px solid "+C.p,background:C.cd,color:C.p,fontSize:12,letterSpacing:1,cursor:"pointer",boxShadow:"2px 2px 0 "+C.bd,fontFamily:"inherit"},
-  btnDk:{padding:"5px 12px",border:"2px solid "+C.p,background:C.p,color:C.ws,fontSize:12,letterSpacing:1,cursor:"pointer",boxShadow:"2px 2px 0 "+C.pl,fontFamily:"inherit"},
-  btnSm:{padding:"3px 8px",border:"2px solid "+C.p,background:C.cd,color:C.p,fontSize:11,cursor:"pointer",fontFamily:"inherit"},
-  input:{width:"100%",padding:"6px 8px",border:"2px solid "+C.p,background:C.cd,fontFamily:"inherit",fontSize:13,color:C.p,outline:"none",boxSizing:"border-box"},
-  lb:{fontSize:11,color:C.mu,letterSpacing:1},
-  st:{fontSize:11,letterSpacing:2,color:C.pl,marginBottom:6,paddingBottom:4,borderBottom:"2px dashed "+C.fn}
+  btn:{padding:"7px 16px",border:"2px solid "+C.p,background:C.cd,color:C.p,fontSize:14,letterSpacing:1,cursor:"pointer",boxShadow:"2px 2px 0 "+C.bd,fontFamily:"inherit"},
+  btnDk:{padding:"7px 16px",border:"2px solid "+C.p,background:C.p,color:C.ws,fontSize:14,letterSpacing:1,cursor:"pointer",boxShadow:"2px 2px 0 "+C.pl,fontFamily:"inherit"},
+  btnSm:{padding:"4px 10px",border:"2px solid "+C.p,background:C.cd,color:C.p,fontSize:13,cursor:"pointer",fontFamily:"inherit"},
+  input:{width:"100%",padding:"8px 10px",border:"2px solid "+C.p,background:C.cd,fontFamily:"inherit",fontSize:15,color:C.p,outline:"none",boxSizing:"border-box"},
+  lb:{fontSize:13,color:C.mu,letterSpacing:1},
+  st:{fontSize:14,letterSpacing:2,color:C.pl,marginBottom:10,paddingBottom:6,borderBottom:"2px dashed "+C.fn}
 };
 const TX={
-  en:{ov:"OVERVIEW",tk:"TASKS",mt:"METRICS",cx:"CONTEXT",ln:"LEARN",id:"IDEAS",h:"H",m:"M",l:"L",pd:"PENDING",ip:"IN PROGRESS",dn:"DONE",nt:"no tasks",rt:"RECENT TASKS",pg:"PROGRESS",dc:"DECISIONS",ft:"RACK \u00b7 Built with # by Iris & Claude",sv:"SAVE",mo:"\u25bc more",le:"\u25b2 less",qa:"+ QUICK ADD",nt2:"+ new task...",ob:"OBSERVERS",rv:"REVIEWS",cu:"CURATED",ng:"NEGATIVE",ac:"ACTIVE",cr:"CONV %",no:"NOTES",ok:"OK",rk:"RISK",bk:"BLOCK",dr:"DIRECTION",nw:"NOW",nx:"NEXT",rl:"RECENT LEARNINGS",nl:"nothing yet",al:"ADD",sc:"source",ai:"ADD",ip2:"new idea...",ni:"no ideas yet",pj:"PROJECTS",cp:"COMPLETED",pr:"PROCESSED",ad:"adopt",dp:"drop",il:"IDEA",ld:"loading...",cn:"CONNECT",u1:"Supabase URL",u2:"Anon Key",cb:"CONNECT",ce:"failed",nd:"no data",nl2:"+ LINE",x:"\u00d7",hi:"HIGH"},
-  zh:{ov:"\u603b\u89c8",tk:"\u4efb\u52a1",mt:"\u6570\u636e",cx:"\u4e0a\u4e0b\u6587",ln:"\u5b66\u4e60",id:"\u60f3\u6cd5",h:"\u9ad8",m:"\u4e2d",l:"\u4f4e",pd:"\u5f85\u529e",ip:"\u8fdb\u884c\u4e2d",dn:"\u5df2\u5b8c\u6210",nt:"\u6ca1\u6709\u4efb\u52a1",rt:"\u8fd1\u671f\u4efb\u52a1",pg:"\u8fdb\u5c55",dc:"\u51b3\u7b56",ft:"RACK \u00b7 Built with # by Iris & Claude",sv:"\u4fdd\u5b58",mo:"\u25bc \u66f4\u591a",le:"\u25b2 \u6536\u8d77",qa:"+ QUICK ADD",nt2:"+ \u65b0\u4efb\u52a1...",ob:"\u89c2\u7315\u5458",rv:"\u7315\u8bc4",cu:"\u7cbe\u9009",ng:"\u5dee\u8bc4",ac:"\u6d3b\u8dc3",cr:"\u8f6c\u5316\u7387%",no:"\u5907\u6ce8",ok:"\u6b63\u5e38",rk:"\u6ce8\u610f",bk:"\u963b\u585e",dr:"\u65b9\u5411",nw:"\u73b0\u5728",nx:"\u4e0b\u4e00\u6b65",rl:"\u6700\u8fd1\u5b66\u5230\u7684",nl:"\u8fd8\u6ca1\u6709\u8bb0\u5f55",al:"\u6dfb\u52a0",sc:"\u6765\u6e90",ai:"\u6dfb\u52a0",ip2:"\u65b0\u60f3\u6cd5...",ni:"\u8fd8\u6ca1\u6709\u60f3\u6cd5",pj:"\u9879\u76ee",cp:"\u5df2\u5b8c\u6210",pr:"\u5df2\u5904\u7406",ad:"\u91c7\u7eb3",dp:"\u653e\u5f03",il:"\u60f3\u6cd5",ld:"\u52a0\u8f7d\u4e2d...",cn:"\u8fde\u63a5",u1:"Supabase URL",u2:"Anon Key",cb:"\u8fde\u63a5",ce:"\u8fde\u63a5\u5931\u8d25",nd:"\u6682\u65e0\u6570\u636e",nl2:"+ \u7ebf\u8def",x:"\u00d7",hi:"\u9ad8"}
+  en:{ov:"OVERVIEW",tk:"TASKS",mt:"METRICS",cx:"CONTEXT",ln:"LEARN",id:"IDEAS",hi:"HIGH",md:"MED",lo:"LOW",pd:"PENDING",ip:"IN PROGRESS",dn:"DONE",nt:"no tasks",rt:"RECENT TASKS",pg:"PROGRESS",dc:"DECISIONS",ft:"RACK · Built with # by Iris & Claude",sv:"ADD",mo:"▼ more",le:"▲ less",nt2:"+ new task...",ob:"OBSERVERS",rv:"REVIEWS",cu:"CURATED",ng:"NEGATIVE",ac:"ACTIVE",cr:"CONV %",no:"NOTES",ok:"ON TRACK",rk:"AT RISK",bk:"BLOCKED",dr:"DIRECTION",nw:"NOW",nx:"NEXT",rl:"RECENT LEARNINGS",nl:"nothing yet",al:"ADD",sc:"source",ai:"ADD",ip2:"new idea...",ni:"no ideas yet",pj:"PROJECTS",cp:"COMPLETED",pr:"PROCESSED",ad:"adopt",dp:"drop",il:"IDEA",ld:"loading...",cn:"CONNECT",u1:"Supabase URL",u2:"Anon Key",cb:"CONNECT",ce:"failed",nd:"no data",addL:"+ LINE"},
+  zh:{ov:"总览",tk:"任务",mt:"数据",cx:"上下文",ln:"学习",id:"想法",hi:"高",md:"中",lo:"低",pd:"待办",ip:"进行中",dn:"已完成",nt:"没有任务",rt:"近期任务",pg:"进展",dc:"已做决策",ft:"RACK · Built with # by Iris & Claude",sv:"添加",mo:"▼ 更多",le:"▲ 收起",nt2:"+ 新任务...",ob:"新增观猹员",rv:"猹评",cu:"精选",ng:"差评",ac:"活跃",cr:"转化率 %",no:"备注",ok:"正常",rk:"注意",bk:"阻塞",dr:"方向",nw:"现在",nx:"下一步",rl:"最近学到的",nl:"还没有记录",al:"添加",sc:"来源",ai:"添加",ip2:"新想法...",ni:"还没有想法",pj:"项目",cp:"已完成",pr:"已处理",ad:"采纳",dp:"放弃",il:"想法",ld:"加载中...",cn:"连接",u1:"Supabase URL",u2:"Anon Key",cb:"连接",ce:"连接失败",nd:"暂无数据",addL:"+ 线路"}
 };
-var sb=null;
-function initSB(u,k){sb=supabase.createClient(u,k)}
+var sb=null;var baseUrl="";
+function initSB(u,k){sb=supabase.createClient(u,k);baseUrl=u}
 async function fa(t,o,a){if(!sb)return[];try{var q=sb.from(t).select("*");if(o)q=q.order(o,{ascending:a!==false});var r=await q;return r.error?[]:r.data||[]}catch(e){return[]}}
 async function ins(t,r){if(!sb)return null;try{var res=await sb.from(t).insert(r).select();return res.error?null:(res.data||[])[0]}catch(e){return null}}
 async function upd(t,id,u){if(!sb)return null;try{var res=await sb.from(t).update(u).eq("id",id).select();return res.error?null:(res.data||[])[0]}catch(e){return null}}
@@ -55,343 +55,27 @@ function td(){return new Date().toISOString().slice(0,10)}
 function fd(d){return d?d.slice(5,10).replace("-","/"):""}
 function getH(){try{var h=decodeURIComponent(window.location.hash.slice(1));return h?JSON.parse(h):null}catch(e){return null}}
 function setH(o){window.location.hash=encodeURIComponent(JSON.stringify(o))}
-var TC={"\u63a8\u8fdb":C.lt,"\u89c2\u5bdf":C.gd,"\u60f3\u6cd5":C.pl,priority:C.lt,blocker:"#c45555",activity:C.gd,observation:C.pl};
 var PC={high:C.dk,medium:C.gd,low:C.pl};
-var SC={on_track:C.lt,at_risk:C.gd,blocked:"#c45555",active:C.lt};
-
-function ConnectScreen({onConnect,t}){
-  var [url,su]=useState("");var [key,sk]=useState("");var [err,se]=useState("");var [ld,sl]=useState(false);
-  async function go(){if(!url||!key)return;sl(true);se("");try{initSB(url.trim().replace(/\/+$/,""),key.trim());var r=await sb.from("work_status").select("id").limit(1);if(r.error)throw 0;setH({url:url.trim().replace(/\/+$/,""),key:key.trim()});onConnect()}catch(e){se(t.ce);sb=null}sl(false)}
-  return <div style={{height:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}}>
-    <div style={{...S.card,padding:28,width:360,textAlign:"center"}}>
-      <div style={{fontSize:18,color:C.dk,letterSpacing:3,marginBottom:20}}>RACK <span style={{color:C.gd}}>#</span></div>
-      <input value={url} onChange={function(e){su(e.target.value)}} placeholder={t.u1} style={{...S.input,marginBottom:8}}/>
-      <input value={key} onChange={function(e){sk(e.target.value)}} placeholder={t.u2} type="password" onKeyDown={function(e){if(e.key==="Enter")go()}} style={{...S.input,marginBottom:12}}/>
-      {err&&<div style={{color:"#c45555",fontSize:11,marginBottom:6}}>{err}</div>}
-      <span onClick={go} style={{...S.btnDk,width:"100%",display:"block",textAlign:"center",padding:"8px 0"}}>{ld?t.ld:t.cb}</span>
-    </div>
-  </div>;
-}
-
-function SysTabs({sys,setSys,setP}){
-  return <div className="sys-tabs">{[["work","WORK"],["lux","LUX"],["iris","IRIS"]].map(function(a){return <div key={a[0]} className="sys-tab" onClick={function(){setSys(a[0]);setP("ov")}} style={{background:sys===a[0]?C.p:C.cd,color:sys===a[0]?C.ws:C.pl}}>{a[1]}</div>})}</div>;
-}
-function Nav({pg,setP,lang,setLang,t,sys,disc}){
-  var tm={work:[["ov",t.ov],["tk",t.tk],["mt",t.mt],["cx",t.cx]],lux:[["ov",t.ov],["tk",t.tk],["id",t.id]],iris:[["ov",t.ov],["tk",t.tk],["ln",t.ln]]};
-  return <div style={{...S.card,padding:"8px 16px",display:"flex",alignItems:"center",gap:10,flexShrink:0}}>
-    <span style={{fontSize:15,color:C.dk,marginRight:6}}>RACK <span style={{color:C.gd}}>#</span></span>
-    <div style={{display:"flex",gap:3}}>{(tm[sys]||[]).map(function(a){return <span key={a[0]} style={pg===a[0]?S.btnDk:S.btn} onClick={function(){setP(a[0])}}>{a[1]}</span>})}</div>
-    <div style={{marginLeft:"auto",display:"flex",alignItems:"center",gap:8}}>
-      <div style={{display:"flex",border:"2px solid "+C.p}}>{["en","zh"].map(function(l){return <span key={l} onClick={function(){setLang(l)}} style={{fontSize:10,padding:"2px 8px",background:lang===l?C.p:C.cd,color:lang===l?C.ws:C.p,cursor:"pointer"}}>{l.toUpperCase()}</span>})}</div>
-      <span onClick={disc} style={{fontSize:10,color:C.pl,cursor:"pointer"}}>{"\u23fb"}</span>
-      <div style={{width:10,height:10,background:C.fn,animation:"pulse 2.5s ease-in-out infinite"}}/>
-    </div>
-  </div>;
-}
-
-function TRow({tk,ln,t,dn,cyc,rm,ed}){
-  var [e,se]=useState(false);var [v,sv]=useState(tk.title);
-  function save(){if(v.trim()&&v!==tk.title)ed(tk.id,{title:v.trim()});se(false)}
-  return <div style={{display:"flex",alignItems:"center",padding:dn?"3px 12px":"5px 12px",borderBottom:"1px dashed "+C.fn}}>
-    <div style={{width:22,flexShrink:0}} onClick={function(){cyc(tk.id,tk.status)}}>
-      <span style={{width:12,height:12,display:"inline-block",cursor:"pointer",border:"2px solid "+(dn?C.gd:tk.status==="in_progress"?C.p:C.bd),background:dn?C.gd:tk.status==="in_progress"?C.p:"transparent"}}/>
-    </div>
-    <div style={{width:22,flexShrink:0}}>{!dn&&<span style={{fontSize:10,color:PC[tk.priority]}}>{tk.priority==="high"?t.h:tk.priority==="medium"?t.m:t.l}</span>}</div>
-    <div style={{flex:1,minWidth:0}}>
-      {e?<input className="edit-input" value={v} onChange={function(ev){sv(ev.target.value)}} onBlur={save} onKeyDown={function(ev){if(ev.key==="Enter")save();if(ev.key==="Escape")se(false)}} autoFocus style={{fontSize:12}}/>
-      :<span onClick={function(){if(!dn)se(true)}} style={{fontSize:12,color:dn?C.mu:C.tx,textDecoration:dn?"line-through":"none",cursor:dn?"default":"text"}}>{tk.title}</span>}
-    </div>
-    {ln&&<span style={{fontSize:10,color:C.pl,marginLeft:6,flexShrink:0}}>{ln}</span>}
-    {tk.due_date&&!dn&&<span style={{fontSize:10,color:C.mu,marginLeft:6,flexShrink:0}}>{fd(tk.due_date)}</span>}
-    {dn&&tk.completed_at&&<span style={{fontSize:9,color:C.pl,marginLeft:6,flexShrink:0}}>{fd(tk.completed_at)}</span>}
-    <span className="del-btn" onClick={function(ev){ev.stopPropagation();rm(tk.id)}} style={{marginLeft:4}}>{t.x}</span>
-  </div>;
-}
-function TList({tasks,lines,t,cyc,rm,ed}){
-  var [f,sf]=useState("all");
-  var fl=f==="all"?tasks:tasks.filter(function(x){return x.work_line_id===f});
-  var pend=fl.filter(function(x){return x.status!=="done"&&!x.is_archived}).sort(function(a,b){return({high:0,medium:1,low:2}[a.priority]||1)-({high:0,medium:1,low:2}[b.priority]||1)});
-  var done=fl.filter(function(x){return x.status==="done"&&!x.is_archived}).sort(function(a,b){return new Date(b.completed_at||0)-new Date(a.completed_at||0)});
-  var ln=function(id){var r=lines.find(function(l){return l.id===id});return r?r.name:""};
-  return <div className="page-fill">
-    <div style={{display:"flex",gap:3,marginBottom:8,flexWrap:"wrap",flexShrink:0}}>
-      <span style={f==="all"?S.btnDk:S.btn} onClick={function(){sf("all")}}>ALL</span>
-      {lines.map(function(w){return <span key={w.id} style={f===w.id?S.btnDk:S.btn} onClick={function(){sf(w.id)}}>{w.name}</span>})}
-    </div>
-    <div style={{...S.card,flex:1,overflow:"auto"}}>
-      {!pend.length&&!done.length&&<div style={{padding:20,textAlign:"center",color:C.pl,fontSize:12}}>{t.nt}</div>}
-      {pend.map(function(tk){return <TRow key={tk.id} tk={tk} ln={ln(tk.work_line_id)} t={t} dn={false} cyc={cyc} rm={rm} ed={ed}/>})}
-      {done.length>0&&<div style={{padding:"6px 12px 2px"}}><span style={{fontSize:10,letterSpacing:2,color:C.pl}}>{t.dn}</span></div>}
-      {done.map(function(tk){return <TRow key={tk.id} tk={tk} ln={ln(tk.work_line_id)} t={t} dn={true} cyc={cyc} rm={rm} ed={ed}/>})}
-    </div>
-  </div>;
-}
-
-function WOv({lines,tasks,t,cyc,rm,edT,edL}){
-  var act=tasks.filter(function(x){return x.status!=="done"&&!x.is_archived});
-  var ln=function(id){var r=lines.find(function(l){return l.id===id});return r?r.name:""};
-  var [eId,sE]=useState(null);
-  return <div style={{display:"flex",flexDirection:"column",flex:1}}>
-    <div style={{...S.card,padding:"6px 16px",display:"flex",gap:20,marginBottom:8,flexShrink:0,alignItems:"baseline"}}>
-      {[[t.pd,act.length,C.p],[t.ip,act.filter(function(x){return x.status==="in_progress"}).length,C.p],[t.hi||t.h,act.filter(function(x){return x.priority==="high"}).length,C.dk]].map(function(i){return <div key={i[0]} style={{display:"flex",alignItems:"baseline",gap:4}}><span style={{fontSize:11,color:C.mu,letterSpacing:1}}>{i[0]}</span><span style={{fontSize:16,color:i[2]}}>{i[1]}</span></div>})}
-    </div>
-    <div style={{display:"flex",gap:10,flex:1,minHeight:0}}>
-      <div style={{width:300,flexShrink:0,display:"flex",flexDirection:"column",gap:6,overflow:"auto"}}>
-        {lines.map(function(wl){
-          if(eId===wl.id){
-            var fs=[{k:"name",l:"Name"},{k:"next_action",l:"Next"},{k:"status",l:"Status"}];
-            var [vs,sV]=useState(function(){var o={};fs.forEach(function(f){o[f.k]=wl[f.k]||""});return o});
-            return <div key={wl.id} style={{...S.card,padding:"8px 12px"}}>
-              {fs.map(function(f){return <div key={f.k} style={{marginBottom:4}}><div style={{fontSize:9,color:C.mu}}>{f.l}</div><input className="edit-input" value={vs[f.k]||""} onChange={function(e){var n=Object.assign({},vs);n[f.k]=e.target.value;sV(n)}} style={{fontSize:11}}/></div>})}
-              <div style={{display:"flex",gap:3,marginTop:4}}><span onClick={function(){edL(wl.id,vs);sE(null)}} style={{...S.btnSm,fontSize:9}}>OK</span><span onClick={function(){sE(null)}} style={{...S.btnSm,fontSize:9,color:C.mu,borderColor:C.bd}}>X</span></div>
-            </div>}
-          return <div key={wl.id} style={{...S.card,padding:"8px 12px"}} onDoubleClick={function(){sE(wl.id)}}>
-            <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}><span style={{fontSize:13}}>{wl.name}</span><span style={{fontSize:10,color:SC[wl.status]||C.lt,border:"1px solid",padding:"0 5px"}}>{t[wl.status==="on_track"?"ok":wl.status==="at_risk"?"rk":"bk"]||wl.status}</span></div>
-            {wl.key_metric_value!=null&&<div style={{fontSize:18,color:C.p}}>{wl.key_metric_value}<span style={{fontSize:10,color:C.mu,marginLeft:3}}>{wl.key_metric_unit||""}</span></div>}
-            {wl.key_metric_label&&<div style={{fontSize:10,color:C.mu,marginBottom:4}}>{wl.key_metric_label}</div>}
-            {wl.next_action&&<div style={{fontSize:11,borderTop:"1px dashed "+C.fn,paddingTop:4}}>{"\u2192"} {wl.next_action}</div>}
-          </div>})}
-      </div>
-      <div style={{flex:1,display:"flex",flexDirection:"column",minWidth:0}}>
-        <div style={S.st}>{t.rt}</div>
-        <div style={{...S.card,flex:1,overflow:"auto"}}>
-          {act.slice(0,12).map(function(tk){return <TRow key={tk.id} tk={tk} ln={ln(tk.work_line_id)} t={t} dn={false} cyc={cyc} rm={rm} ed={edT}/>})}
-          {!act.length&&<div style={{padding:20,textAlign:"center",color:C.pl,fontSize:12}}>{t.nt}</div>}
-        </div>
-      </div>
-    </div>
-  </div>;
-}
-function WMt({metrics,t}){
-  var sorted=[].concat(metrics).sort(function(a,b){return a.date.localeCompare(b.date)});
-  var l7=sorted.slice(-7),p7=sorted.slice(-14,-7);var sm=function(a,k){return a.reduce(function(s,m){return s+(m[k]||0)},0)};
-  var cmp=function(k){var c=sm(l7,k),p=sm(p7,k);if(!p)return{v:c,d:"flat",p:null};var pct=Math.round((c-p)/p*100);return{v:c,d:pct>0?"up":pct<0?"down":"flat",p:Math.abs(pct)}};
-  var recent=sorted.slice(-14);var mx=Math.max.apply(null,recent.map(function(d){return Math.max(d.new_guanchayuan||0,d.new_chapin||0)}));if(mx<10)mx=10;
-  if(!recent.length)return <div style={{...S.card,padding:20,textAlign:"center",color:C.pl}}>{t.nd}</div>;
-  return <div className="page-fill">
-    <div style={{...S.card,padding:14,marginBottom:10,flexShrink:0}}><div style={S.st}>14 DAYS</div>
-      <div style={{height:120,display:"flex",alignItems:"flex-end",gap:3}}>{recent.map(function(d,i){return <div key={i} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:1}}>
-        <div style={{display:"flex",gap:1,alignItems:"flex-end",height:100,width:"100%"}}><div style={{flex:1,height:Math.max(2,(d.new_guanchayuan||0)/mx*100),background:C.p}}/><div style={{flex:1,height:Math.max(2,(d.new_chapin||0)/mx*100),background:C.gd}}/></div>
-        <span style={{fontSize:8,color:C.pl}}>{d.date.slice(8)}</span></div>})}</div>
-      <div style={{display:"flex",gap:16,marginTop:8,fontSize:11}}><span style={{display:"flex",alignItems:"center",gap:4}}><span style={{width:8,height:8,background:C.p}}/>{t.ob}</span><span style={{display:"flex",alignItems:"center",gap:4}}><span style={{width:8,height:8,background:C.gd}}/>{t.rv}</span></div></div>
-    <div style={{...S.card,padding:14,display:"flex",gap:32,flexWrap:"wrap"}}>{[["new_guanchayuan",t.ob],["new_chapin",t.rv],["new_negative",t.ng]].map(function(a){var c=cmp(a[0]);return <div key={a[0]} style={{textAlign:"center"}}><div style={{fontSize:11,color:C.mu,marginBottom:2}}>{a[1]}</div><div style={{fontSize:20,color:C.p}}>{c.v}</div>{c.p!=null&&<span style={{fontSize:11,color:c.d==="up"?C.lt:C.gd}}>{c.d==="up"?"\u2191":"\u2193"}{c.p}%</span>}</div>})}</div>
-  </div>;
-}
-function WCx({ctx,dec,t}){
-  return <div className="page-fill" style={{gap:10}}>
-    <div style={{...S.card,padding:14,flex:1,overflow:"auto"}}><div style={S.st}>{t.pg}</div>
-      {ctx.map(function(c){var tg=c.type||c.tag||"";return <div key={c.id} style={{display:"flex",gap:8,padding:"4px 0",borderBottom:"1px dashed "+C.fn}}>
-        <span style={{fontSize:10,color:C.pl,width:36,flexShrink:0}}>{fd(c.created_at)}</span>
-        <span style={{fontSize:10,color:TC[tg]||C.pl,border:"1px solid "+(TC[tg]||C.pl)+"60",padding:"0 4px",flexShrink:0}}>{tg}</span>
-        <span style={{fontSize:12,color:C.tx,flex:1,lineHeight:1.4}}>{c.content}</span></div>})}
-      {!ctx.length&&<div style={{padding:12,textAlign:"center",color:C.pl}}>{"\u2014"}</div>}</div>
-    <div style={{...S.card,padding:14,flex:1,overflow:"auto"}}><div style={S.st}>{t.dc}</div>
-      {dec.map(function(d){return <div key={d.id} style={{padding:"5px 0 5px 10px",borderLeft:"3px solid "+C.fn,marginBottom:4}}>
-        <div style={{fontSize:12}}>{d.decision}</div>{d.reasoning&&<div style={{fontSize:11,color:C.mu,marginTop:2}}>{d.reasoning}</div>}
-        <div style={{fontSize:10,color:C.pl,marginTop:2}}>{d.made_by||""} {"\u00b7"} {fd(d.made_at)}</div></div>})}
-      {!dec.length&&<div style={{padding:12,textAlign:"center",color:C.pl}}>{"\u2014"}</div>}</div>
-  </div>;
-}
-
-function LOv({lines,t,edL,addL}){
-  var act=lines.filter(function(l){return l.status!=="done"});var dn=lines.filter(function(l){return l.status==="done"});
-  return <div className="page-fill">
-    <div style={S.st}>{t.pj} ({act.length})</div>
-    <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,marginBottom:8}}>
-      {act.map(function(p){return <div key={p.id} style={{...S.card,padding:"8px 10px"}} onDoubleClick={function(){}}>
-        <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:4}}>{p.icon&&<span style={{fontSize:18}}>{p.icon}</span>}<div><div style={{fontSize:12}}>{p.name}</div>{p.description&&<div style={{fontSize:9,color:C.pl}}>{p.description}</div>}</div></div>
-        {p.next_action&&<div style={{fontSize:10,color:C.mu,borderTop:"1px dashed "+C.fn,paddingTop:3}}>{"\u2192"} {p.next_action}</div>}
-      </div>})}
-    </div>
-    {dn.length>0&&<div><div style={S.st}>{t.cp} ({dn.length})</div>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,marginBottom:8}}>
-        {dn.map(function(p){return <div key={p.id} style={{...S.cardDim,padding:"8px 10px"}}>
-          <div style={{display:"flex",alignItems:"center",gap:6}}>{p.icon&&<span style={{fontSize:18,opacity:.4}}>{p.icon}</span>}<span style={{fontSize:12,color:C.mu}}>{p.name}</span></div></div>})}
-      </div></div>}
-    <span onClick={addL} style={{...S.btnSm,color:C.pl,borderColor:C.fn}}>{t.nl2}</span>
-  </div>;
-}
-function LId({ideas,lns,t,adp,drp,rm}){
-  var [sd,sD]=useState(false);
-  var ac=ideas.filter(function(x){return x.status==="active"});var pr=ideas.filter(function(x){return x.status!=="active"});
-  return <div className="page-fill">
-    <div style={{...S.card,flex:1,overflow:"auto"}}>
-      {ac.map(function(i){return <div key={i.id} style={{display:"flex",alignItems:"flex-start",padding:"6px 12px",borderBottom:"1px dashed "+C.fn,gap:8}}>
-        <div style={{flex:1}}><div style={{fontSize:12,lineHeight:1.5}}>{i.content}</div>
-          <div style={{display:"flex",gap:6,marginTop:3,alignItems:"center"}}><span style={{fontSize:10,color:C.pl}}>{fd(i.created_at)}</span>
-            {i.line_id&&<span style={{fontSize:9,color:C.lt,border:"1px solid "+C.fn,padding:"0 3px"}}>{(lns.find(function(l){return l.id===i.line_id})||{}).name||""}</span>}</div></div>
-        <div style={{display:"flex",gap:2,flexShrink:0}}>
-          <span onClick={function(){adp(i.id)}} style={{...S.btnSm,fontSize:9,padding:"1px 5px",color:C.lt,borderColor:C.fn,cursor:"pointer"}}>{"\u2713"}</span>
-          <span onClick={function(){drp(i.id)}} style={{...S.btnSm,fontSize:9,padding:"1px 5px",color:C.mu,borderColor:C.fn,cursor:"pointer"}}>{"\u00d7"}</span>
-        </div>
-      </div>})}
-      {!ac.length&&<div style={{padding:20,textAlign:"center",color:C.pl,fontSize:12}}>{t.ni}</div>}
-    </div>
-    {pr.length>0&&<div style={{marginTop:8,flexShrink:0}}>
-      <span onClick={function(){sD(!sd)}} style={{fontSize:10,color:C.pl,cursor:"pointer"}}>{sd?"\u25b2":"\u25b8"} {t.pr} ({pr.length})</span>
-      {sd&&<div style={{...S.cardDim,marginTop:4,maxHeight:120,overflow:"auto"}}>
-        {pr.map(function(i){return <div key={i.id} style={{display:"flex",padding:"4px 12px",borderBottom:"1px dashed #e8e8e8",gap:8,alignItems:"center"}}>
-          <span style={{fontSize:9,color:i.status==="adopted"?C.gd:C.bd,width:26}}>{i.status==="adopted"?t.ad:t.dp}</span>
-          <span style={{fontSize:11,color:C.mu,flex:1}}>{i.content}</span>
-          <span className="del-btn" onClick={function(){rm(i.id)}}>{t.x}</span></div>})}
-      </div>}</div>}
-  </div>;
-}
-
-function IOv({lines,learnings,t,edL,addL}){
-  return <div style={{display:"flex",flexDirection:"column",flex:1}}>
-    <div style={{display:"flex",gap:10,marginBottom:8,flexWrap:"wrap",flexShrink:0}}>
-      {lines.map(function(wl){return <div key={wl.id} style={{...S.card,padding:"8px 12px",flex:"1 1 220px"}} onDoubleClick={function(){}}>
-        <div style={{fontSize:13,marginBottom:6}}>{wl.name}</div>
-        {wl.direction&&<div style={{marginBottom:4}}><div style={{fontSize:9,letterSpacing:1,color:C.gd,marginBottom:1}}>{t.dr}</div><div style={{fontSize:11}}>{wl.direction}</div></div>}
-        {wl.next_action&&<div style={{borderTop:"1px dashed "+C.fn,paddingTop:4}}><div style={{fontSize:9,letterSpacing:1,color:C.pl,marginBottom:1}}>{t.nx}</div><div style={{fontSize:11}}>{"\u2192"} {wl.next_action}</div></div>}
-      </div>})}
-      <span onClick={addL} style={{...S.btnSm,color:C.pl,borderColor:C.fn,alignSelf:"flex-start",marginTop:4}}>{t.nl2}</span>
-    </div>
-    <div style={S.st}>{t.rl}</div>
-    <div style={{...S.card,flex:1,overflow:"auto"}}>{learnings.slice(0,5).map(function(l){return <div key={l.id} style={{padding:"6px 12px",borderBottom:"1px dashed "+C.fn}}>
-      <div style={{fontSize:12,lineHeight:1.5}}>{l.content}</div>
-      <div style={{display:"flex",gap:6,marginTop:3,alignItems:"center",flexWrap:"wrap"}}><span style={{fontSize:10,color:C.pl}}>{fd(l.created_at)}</span>
-        {l.source&&<span style={{fontSize:10,color:C.mu}}>{"\u00b7"} {l.source}</span>}
-        {l.tags&&l.tags.map(function(tg){return <span key={tg} style={{fontSize:9,color:C.lt,border:"1px solid "+C.fn,padding:"0 3px"}}>{tg}</span>})}</div></div>})}
-      {!learnings.length&&<div style={{padding:20,textAlign:"center",color:C.pl,fontSize:12}}>{t.nl}</div>}
-    </div>
-  </div>;
-}
-function ILn({learnings,t,rm}){
-  var last="";
-  return <div className="page-fill">
-    <div style={{...S.card,flex:1,overflow:"auto",padding:"4px 0"}}>
-    {learnings.map(function(l){var dt=(l.created_at||"").slice(0,10);var show=dt!==last;last=dt;return <div key={l.id}>
-      {show&&<div style={{fontSize:10,color:C.mu,padding:"8px 12px 2px",display:"flex",alignItems:"center",gap:5}}><span style={{width:5,height:5,background:C.gd}}/>{dt}</div>}
-      <div style={{padding:"4px 12px 4px 20px",borderLeft:"2px solid "+C.fn,marginLeft:12,display:"flex",alignItems:"flex-start"}}>
-        <div style={{flex:1}}><div style={{fontSize:12,lineHeight:1.5}}>{l.content}</div>
-          <div style={{display:"flex",gap:6,marginTop:3,alignItems:"center",flexWrap:"wrap"}}>
-            {l.source&&<span style={{fontSize:10,color:C.mu}}>{l.source}</span>}
-            {l.tags&&l.tags.map(function(tg){return <span key={tg} style={{fontSize:9,color:C.lt,border:"1px solid "+C.fn,padding:"0 3px"}}>{tg}</span>})}</div></div>
-        <span className="del-btn" onClick={function(){rm(l.id)}}>{t.x}</span>
-      </div></div>})}
-    {!learnings.length&&<div style={{padding:20,textAlign:"center",color:C.pl,fontSize:12}}>{t.nl}</div>}
-    </div>
-  </div>;
-}
-
-function QA({sys,t,lines,ref}){
-  var [op,sO]=useState(false);var [mo,sM]=useState(false);
-  var [tv,sT]=useState("");var [tw,sTw]=useState("");
-  var [mf,sMf]=useState({a:"",b:"",c:"",n:"",ac:"",cv:"",no:""});
-  var [lc,sLc]=useState("");var [ls,sLs]=useState("");
-  var [ic,sIc]=useState("");var [il,sIl]=useState("");
-  async function aT(){if(!tv.trim())return;await ins("tasks",{title:tv.trim(),work_line_id:tw||null,category:sys==="work"?"work":sys==="lux"?"lux":"self",status:"todo",priority:"medium"});sT("");sTw("");ref()}
-  async function sMe(){var r={date:td(),new_guanchayuan:parseInt(mf.a)||0,new_chapin:parseInt(mf.b)||0,curated_chapin:parseInt(mf.c)||0};if(mo){r.new_negative=parseInt(mf.n)||0;r.active_guanchayuan=parseInt(mf.ac)||0;r.conversion_rate=parseFloat(mf.cv)||null;r.notes=mf.no||null}await ups("daily_metrics",r,"date");sMf({a:"",b:"",c:"",n:"",ac:"",cv:"",no:""});ref()}
-  async function aL(){if(!lc.trim())return;await ins("learnings",{content:lc.trim(),source:ls.trim()||null,category:"self"});sLc("");sLs("");ref()}
-  async function aI(){if(!ic.trim())return;await ins("ideas",{content:ic.trim(),line_id:il||null,category:"lux"});sIc("");sIl("");ref()}
-  function ent(fn){return function(e){if(e.key==="Enter")fn()}}
-  if(!op)return <div onClick={function(){sO(true)}} style={{position:"fixed",bottom:0,left:0,right:0,background:C.p,color:C.ws,padding:"8px",fontSize:12,cursor:"pointer",textAlign:"center",letterSpacing:3,boxShadow:"0 -2px 0 "+C.dk,zIndex:50}}>+ QUICK ADD</div>;
-  return <div style={{position:"fixed",bottom:0,left:0,right:0,background:C.cd,border:"2px solid "+C.p,borderBottom:"none",padding:"10px 20px 10px 90px",boxShadow:"0 -4px 8px rgba(26,45,92,.08)",zIndex:50}}>
-    <div style={{display:"flex",gap:14,alignItems:"flex-end",flexWrap:"wrap"}}>
-      {sys==="work"&&<React.Fragment>
-        <div style={{flex:1,minWidth:200}}>
-          <div style={{...S.lb,marginBottom:3}}>{t.mt}</div>
-          <div style={{display:"flex",gap:6}}>
-            <div style={{flex:1}}><div style={{fontSize:9,color:C.mu,marginBottom:1}}>{t.ob}</div><input type="number" value={mf.a} onChange={function(e){sMf(Object.assign({},mf,{a:e.target.value}))}} onKeyDown={ent(sMe)} style={{...S.input,fontSize:11,padding:"4px 6px"}}/></div>
-            <div style={{flex:1}}><div style={{fontSize:9,color:C.mu,marginBottom:1}}>{t.rv}</div><input type="number" value={mf.b} onChange={function(e){sMf(Object.assign({},mf,{b:e.target.value}))}} onKeyDown={ent(sMe)} style={{...S.input,fontSize:11,padding:"4px 6px"}}/></div>
-            <div style={{flex:1}}><div style={{fontSize:9,color:C.gd,marginBottom:1}}>{t.cu}</div><input type="number" value={mf.c} onChange={function(e){sMf(Object.assign({},mf,{c:e.target.value}))}} onKeyDown={ent(sMe)} style={{...S.input,fontSize:11,padding:"4px 6px",color:C.gd}}/></div>
-            <span onClick={sMe} style={{...S.btnDk,alignSelf:"flex-end",padding:"4px 8px",fontSize:11}}>{t.sv}</span>
-          </div>
-          {mo&&<div style={{display:"flex",gap:6,marginTop:4}}>
-            <div style={{flex:1}}><div style={{fontSize:9,color:C.mu,marginBottom:1}}>{t.ng}</div><input type="number" value={mf.n} onChange={function(e){sMf(Object.assign({},mf,{n:e.target.value}))}} style={{...S.input,fontSize:11,padding:"4px 6px"}}/></div>
-            <div style={{flex:1}}><div style={{fontSize:9,color:C.mu,marginBottom:1}}>{t.ac}</div><input type="number" value={mf.ac} onChange={function(e){sMf(Object.assign({},mf,{ac:e.target.value}))}} style={{...S.input,fontSize:11,padding:"4px 6px"}}/></div>
-            <div style={{flex:1}}><div style={{fontSize:9,color:C.mu,marginBottom:1}}>{t.cr}</div><input type="number" step="0.1" value={mf.cv} onChange={function(e){sMf(Object.assign({},mf,{cv:e.target.value}))}} style={{...S.input,fontSize:11,padding:"4px 6px"}}/></div>
-            <div style={{flex:2}}><div style={{fontSize:9,color:C.mu,marginBottom:1}}>{t.no}</div><input value={mf.no} onChange={function(e){sMf(Object.assign({},mf,{no:e.target.value}))}} style={{...S.input,fontSize:11,padding:"4px 6px"}}/></div>
-          </div>}
-          <span style={{fontSize:9,color:C.pl,cursor:"pointer",marginTop:2,display:"inline-block"}} onClick={function(){sM(!mo)}}>{mo?t.le:t.mo}</span>
-        </div><div style={{width:1,height:30,background:C.fn}}/>
-      </React.Fragment>}
-      {sys==="iris"&&<React.Fragment>
-        <div style={{flex:1,minWidth:200}}>
-          <div style={{...S.lb,marginBottom:3}}>{t.ln}</div>
-          <div style={{display:"flex",gap:6}}>
-            <input value={lc} onChange={function(e){sLc(e.target.value)}} placeholder={"\u4eca\u5929\u7406\u89e3\u4e86\u4ec0\u4e48..."} onKeyDown={ent(aL)} style={{...S.input,flex:2,fontSize:11,padding:"4px 6px"}}/>
-            <input value={ls} onChange={function(e){sLs(e.target.value)}} placeholder={t.sc} onKeyDown={ent(aL)} style={{...S.input,flex:1,fontSize:10,padding:"4px 6px"}}/>
-            <span onClick={aL} style={{...S.btnDk,fontSize:11,padding:"4px 8px"}}>{t.al}</span>
-          </div>
-        </div><div style={{width:1,height:30,background:C.fn}}/>
-      </React.Fragment>}
-      {sys==="lux"&&<React.Fragment>
-        <div style={{flex:1,minWidth:200}}>
-          <div style={{...S.lb,marginBottom:3}}>{t.il}</div>
-          <div style={{display:"flex",gap:6}}>
-            <input value={ic} onChange={function(e){sIc(e.target.value)}} placeholder={t.ip2} onKeyDown={ent(aI)} style={{...S.input,flex:2,fontSize:11,padding:"4px 6px"}}/>
-            <select value={il} onChange={function(e){sIl(e.target.value)}} style={{...S.input,width:90,fontSize:10,padding:"4px 6px"}}><option value="">{"\u9879\u76ee"}</option>{lines.filter(function(l){return l.status!=="done"}).map(function(l){return <option key={l.id} value={l.id}>{l.name}</option>})}</select>
-            <span onClick={aI} style={{...S.btnDk,fontSize:11,padding:"4px 8px"}}>{t.ai}</span>
-          </div>
-        </div><div style={{width:1,height:30,background:C.fn}}/>
-      </React.Fragment>}
-      <div style={{flex:1,minWidth:200}}>
-        <div style={{...S.lb,marginBottom:3}}>{t.tk}</div>
-        <div style={{display:"flex",gap:6}}>
-          <input placeholder={t.nt2} value={tv} onChange={function(e){sT(e.target.value)}} onKeyDown={ent(aT)} style={{...S.input,flex:1,fontSize:11,padding:"4px 6px"}}/>
-          <select value={tw} onChange={function(e){sTw(e.target.value)}} style={{...S.input,width:80,fontSize:10,padding:"4px 6px"}}><option value="">{"\u2014"}</option>{lines.map(function(w){return <option key={w.id} value={w.id}>{w.name}</option>})}</select>
-          <span onClick={aT} style={{...S.btnDk,fontSize:11,padding:"4px 8px"}}>+</span>
-        </div>
-      </div>
-      <span style={{...S.btnSm,alignSelf:"flex-end",fontSize:10}} onClick={function(){sO(false)}}>{"\u00d7"}</span>
-    </div>
-  </div>;
-}
-
-function App(){
-  var [cn,sCn]=useState(false);var [sys,sSys]=useState("work");var [pg,sPg]=useState("ov");
-  var [lang,sLang]=useState("zh");var [ld,sLd]=useState(true);
-  var [lines,sLn]=useState([]);var [tasks,sTk]=useState([]);var [metrics,sMt]=useState([]);
-  var [ctx,sCx]=useState([]);var [dec,sDc]=useState([]);var [learn,sLr]=useState([]);var [ideas,sId]=useState([]);
-  var t=TX[lang];
-  var ref=useCallback(async function(){
-    var [a,b,c,d,e,f,g]=await Promise.all([fa("lines","order_index",true),fa("tasks","created_at",false),fa("daily_metrics","date",true),fa("context_items","created_at",false),fa("decisions","made_at",false),fa("learnings","created_at",false),fa("ideas","created_at",false)]);
-    sLn(a);sTk(b);sMt(c);sCx(d);sDc(e);sLr(f);sId(g);sLd(false);
-  },[]);
-  useEffect(function(){var h=getH();if(h&&h.url&&h.key){initSB(h.url,h.key);sCn(true);ref()}else sLd(false)},[]);
-  async function cyc(id,cur){var nx=cur==="todo"?"in_progress":cur==="in_progress"?"done":"todo";var u={status:nx};if(nx==="done")u.completed_at=new Date().toISOString();else u.completed_at=null;await upd("tasks",id,u);ref()}
-  async function rmT(id){await del("tasks",id);ref()}
-  async function edT(id,u){await upd("tasks",id,u);ref()}
-  async function edL(id,u){await upd("lines",id,u);ref()}
-  async function adpI(id){await upd("ideas",id,{status:"adopted"});ref()}
-  async function drpI(id){await upd("ideas",id,{status:"dropped"});ref()}
-  async function rmI(id){await del("ideas",id);ref()}
-  async function rmLr(id){await del("learnings",id);ref()}
-  async function addLn(cat){var n=prompt("Name:");if(!n)return;await ins("lines",{id:n.toLowerCase().replace(/\s+/g,"-"),name:n,category:cat,status:cat==="lux"?"active":"on_track",order_index:lines.length+1});ref()}
-  function disc(){window.location.hash="";window.location.reload()}
-  var cl=lines.filter(function(l){return sys==="work"?l.category==="work":sys==="lux"?l.category==="lux":l.category==="self"});
-  var ct=tasks.filter(function(x){return sys==="work"?x.category==="work":sys==="lux"?x.category==="lux":x.category==="self"});
-  if(!cn&&!ld)return <ConnectScreen onConnect={function(){sCn(true);ref()}} t={t}/>;
-  if(ld)return <div style={{height:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}}><span style={{color:C.pl,letterSpacing:3}}>{t.ld}</span></div>;
-  return <div style={{display:"flex",flexDirection:"column",height:"100vh"}}>
-    <SysTabs sys={sys} setSys={sSys} setP={sPg}/>
-    <div style={{display:"flex",flexDirection:"column",flex:1,padding:"10px 20px 40px",marginLeft:80,overflow:"hidden"}}>
-      <Nav pg={pg} setP={sPg} lang={lang} setLang={sLang} t={t} sys={sys} disc={disc}/>
-      <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",marginTop:8}}>
-        {sys==="work"&&<React.Fragment>
-          {pg==="ov"&&<WOv lines={cl} tasks={ct} t={t} cyc={cyc} rm={rmT} edT={edT} edL={edL}/>}
-          {pg==="tk"&&<TList tasks={ct} lines={cl} t={t} cyc={cyc} rm={rmT} ed={edT}/>}
-          {pg==="mt"&&<WMt metrics={metrics} t={t}/>}
-          {pg==="cx"&&<WCx ctx={ctx.filter(function(c){return c.category==="work"||!c.category})} dec={dec.filter(function(d){return d.category==="work"||!d.category})} t={t}/>}
-        </React.Fragment>}
-        {sys==="lux"&&<React.Fragment>
-          {pg==="ov"&&<LOv lines={cl} t={t} edL={edL} addL={function(){addLn("lux")}}/>}
-          {pg==="tk"&&<TList tasks={ct} lines={cl} t={t} cyc={cyc} rm={rmT} ed={edT}/>}
-          {pg==="id"&&<LId ideas={ideas} lns={cl} t={t} adp={adpI} drp={drpI} rm={rmI}/>}
-        </React.Fragment>}
-        {sys==="iris"&&<React.Fragment>
-          {pg==="ov"&&<IOv lines={cl} learnings={learn} t={t} edL={edL} addL={function(){addLn("self")}}/>}
-          {pg==="tk"&&<TList tasks={ct} lines={cl} t={t} cyc={cyc} rm={rmT} ed={edT}/>}
-          {pg==="ln"&&<ILn learnings={learn} t={t} rm={rmLr}/>}
-        </React.Fragment>}
-      </div>
-    </div>
-    <QA sys={sys} t={t} lines={cl} ref={ref}/>
-  </div>;
-}
+var SC={on_track:C.lt,at_risk:C.gd,blocked:C.dn,active:C.lt};
+var TC={"推进":C.lt,"观察":C.gd,"想法":C.pl};
+async function uploadIcon(file){return new Promise(function(resolve){var canvas=document.createElement("canvas");var img=new Image();img.onload=function(){var s=Math.min(200/img.width,200/img.height,1);canvas.width=img.width*s;canvas.height=img.height*s;var ctx=canvas.getContext("2d");ctx.drawImage(img,0,0,canvas.width,canvas.height);var b64=canvas.toDataURL("image/jpeg",0.8);fetch(baseUrl+"/functions/v1/rack/upload-icon",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({image_base64:b64,filename:"icon-"+Date.now()})}).then(function(r){return r.json()}).then(function(d){resolve(d.url||null)}).catch(function(){resolve(null)})};img.src=URL.createObjectURL(file)})}
+function ConnectScreen({onConnect,t}){var [url,su]=useState("");var [key,sk]=useState("");var [err,se]=useState("");var [ld,sl]=useState(false);async function go(){if(!url||!key)return;sl(true);se("");try{initSB(url.trim().replace(/\/+$/,""),key.trim());var r=await sb.from("lines").select("id").limit(1);if(r.error)throw 0;setH({url:url.trim().replace(/\/+$/,""),key:key.trim()});onConnect()}catch(e){se(t.ce);sb=null}sl(false)}return <div style={{height:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}}><div style={{...S.card,padding:36,width:400,textAlign:"center"}}><div style={{fontSize:22,color:C.dk,letterSpacing:3,marginBottom:24}}>RACK <span style={{color:C.gd}}>#</span></div><input value={url} onChange={function(e){su(e.target.value)}} placeholder={t.u1} style={{...S.input,marginBottom:10}}/><input value={key} onChange={function(e){sk(e.target.value)}} placeholder={t.u2} type="password" onKeyDown={function(e){if(e.key==="Enter")go()}} style={{...S.input,marginBottom:14}}/>{err&&<div style={{color:C.dn,fontSize:13,marginBottom:8}}>{err}</div>}<span onClick={go} style={{...S.btnDk,width:"100%",display:"block",textAlign:"center",padding:"10px 0",fontSize:15}}>{ld?t.ld:t.cb}</span></div></div>}
+function SysTabs({sys,setSys,setPg}){return <div className="sys-tabs">{[["work","WORK"],["lux","LUX"],["iris","IRIS"]].map(function(a){return <div key={a[0]} className="sys-tab" onClick={function(){setSys(a[0]);setPg("ov")}} style={{background:sys===a[0]?C.p:C.cd,color:sys===a[0]?C.ws:C.pl}}>{a[1]}</div>})}</div>}
+function Nav({pg,setPg,lang,setLang,t,sys,onAddLine}){var tm={work:[["ov",t.ov],["tk",t.tk],["mt",t.mt],["cx",t.cx]],lux:[["ov",t.ov],["tk",t.tk],["id",t.id]],iris:[["ov",t.ov],["tk",t.tk],["ln",t.ln]]};return <div style={{...S.card,padding:"12px 20px",display:"flex",alignItems:"center",gap:14,marginBottom:20,flexWrap:"wrap"}}><span style={{fontSize:18,color:C.dk,marginRight:8}}>RACK <span style={{color:C.gd}}>#</span></span><div style={{display:"flex",gap:4,flexWrap:"wrap"}}>{(tm[sys]||[]).map(function(a){return <span key={a[0]} style={pg===a[0]?S.btnDk:S.btn} onClick={function(){setPg(a[0])}}>{a[1]}</span>})}</div><div style={{marginLeft:"auto",display:"flex",alignItems:"center",gap:10}}><span onClick={onAddLine} style={{...S.btnSm,color:C.pl,borderColor:C.fn,fontSize:12,cursor:"pointer"}}>{t.addL}</span><div style={{display:"flex",border:"2px solid "+C.p}}>{["en","zh"].map(function(l){return <span key={l} onClick={function(){setLang(l)}} style={{fontSize:12,padding:"4px 10px",background:lang===l?C.p:C.cd,color:lang===l?C.ws:C.p,cursor:"pointer"}}>{l.toUpperCase()}</span>})}</div><div style={{width:12,height:12,background:C.fn,animation:"pulse 2.5s ease-in-out infinite"}}/></div></div>}
+function LineEditCard({line,fields,onSave,onCancel,showIcon}){var [v,sV]=useState(function(){var o={};fields.forEach(function(f){o[f.key]=line[f.key]||""});return o});var [uploading,sU]=useState(false);var set=function(k,val){sV(function(p){var n=Object.assign({},p);n[k]=val;return n})};var handleFile=async function(e){var f=e.target.files[0];if(!f)return;sU(true);var url=await uploadIcon(f);if(url)set("icon_url",url);sU(false)};return <div style={{...S.card,padding:"14px 18px"}}>{fields.map(function(f){return <div key={f.key} style={{marginBottom:8}}><div style={{fontSize:12,color:C.mu,letterSpacing:1,marginBottom:2}}>{f.label}</div>{f.type==="select"?<select value={v[f.key]} onChange={function(e){set(f.key,e.target.value)}} style={{...S.input,fontSize:14}}>{f.options.map(function(o){return <option key={o[0]} value={o[0]}>{o[1]}</option>})}</select>:<input className="ei" value={v[f.key]} onChange={function(e){set(f.key,e.target.value)}}/>}</div>})}{showIcon&&<div style={{marginBottom:8}}><div style={{fontSize:12,color:C.mu,letterSpacing:1,marginBottom:2}}>ICON</div><div style={{display:"flex",gap:8,alignItems:"center"}}><input className="ei" value={v.icon||""} onChange={function(e){set("icon",e.target.value)}} placeholder="emoji" style={{width:60}}/><label style={{...S.btnSm,fontSize:11,cursor:"pointer"}}>{uploading?"...":"↑ IMG"}<input type="file" accept="image/*" onChange={handleFile} style={{display:"none"}}/></label>{v.icon_url&&<img src={v.icon_url} style={{width:28,height:28,objectFit:"cover",border:"1px solid "+C.fn}}/>}</div></div>}<div style={{display:"flex",gap:6,marginTop:4}}><span onClick={function(){onSave(line.id,v)}} style={{...S.btnSm,fontSize:12}}>OK</span><span onClick={onCancel} style={{...S.btnSm,fontSize:12,color:C.mu,borderColor:C.bd}}>CANCEL</span></div></div>}
+function TaskRow({tk,lineName,t,isDone,onCycle,onEdit,onDel}){return <div className="hp" style={{display:"flex",alignItems:"center",padding:isDone?"8px 18px":"10px 18px",borderBottom:"1px dashed "+C.fn}}><div style={{width:30,flexShrink:0}} onClick={function(e){e.stopPropagation();if(onCycle)onCycle(tk.id,tk.status)}}><span style={{width:15,height:15,display:"inline-block",cursor:"pointer",border:"2px solid "+(isDone?C.gd:tk.status==="in_progress"?C.p:C.bd),background:isDone?C.gd:tk.status==="in_progress"?C.p:"transparent"}}/></div><div style={{width:36,flexShrink:0}}>{!isDone&&<span style={{fontSize:13,color:PC[tk.priority]}}>{tk.priority==="high"?t.hi:tk.priority==="medium"?t.md:t.lo}</span>}</div><div style={{flex:1,minWidth:0,fontSize:isDone?14:16,color:isDone?C.mu:C.tx,textDecoration:isDone?"line-through":"none",lineHeight:1.4}}>{tk.title}</div>{lineName&&<span style={{fontSize:13,color:C.pl,marginLeft:12,flexShrink:0}}>{lineName}</span>}{tk.due_date&&!isDone&&<span style={{fontSize:13,color:C.mu,marginLeft:12,flexShrink:0}}>{fd(tk.due_date)}</span>}{isDone&&tk.completed_at&&<span style={{fontSize:13,color:C.pl,marginLeft:12,flexShrink:0}}>{fd(tk.completed_at)}</span>}<div className="ha" style={{marginLeft:8}}>{onEdit&&<span onClick={function(e){e.stopPropagation();onEdit(tk.id)}} style={{fontSize:14,color:C.pl,cursor:"pointer"}}>✎</span>}{onDel&&<span onClick={function(e){e.stopPropagation();onDel(tk.id)}} style={{fontSize:14,color:C.pl,cursor:"pointer"}}>×</span>}</div></div>}
+function TaskEditRow({tk,lines,t,onSave,onCancel}){var [title,sT]=useState(tk.title);var [pri,sP]=useState(tk.priority);var [wl,sW]=useState(tk.work_line_id||"");return <div style={{display:"flex",alignItems:"center",gap:8,padding:"8px 18px",borderBottom:"1px dashed "+C.fn,background:C.ws}}><input value={title} onChange={function(e){sT(e.target.value)}} style={{...S.input,flex:1,fontSize:14,padding:"6px 8px"}}/><select value={pri} onChange={function(e){sP(e.target.value)}} style={{...S.input,width:80,fontSize:13,padding:"6px 8px"}}><option value="high">{t.hi}</option><option value="medium">{t.md}</option><option value="low">{t.lo}</option></select><select value={wl} onChange={function(e){sW(e.target.value)}} style={{...S.input,width:100,fontSize:13,padding:"6px 8px"}}><option value="">—</option>{lines.map(function(l){return <option key={l.id} value={l.id}>{l.name}</option>})}</select><span onClick={function(){onSave(tk.id,{title:title,priority:pri,work_line_id:wl||null})}} style={{...S.btnSm,fontSize:12}}>OK</span><span onClick={onCancel} style={{...S.btnSm,fontSize:12,color:C.mu,borderColor:C.bd}}>×</span></div>}
+function TasksList({tasks,lines,t,refresh}){var [filter,sF]=useState("all");var [editId,sE]=useState(null);var fl=filter==="all"?tasks:tasks.filter(function(x){return x.work_line_id===filter});var pend=fl.filter(function(x){return x.status!=="done"&&!x.is_archived}).sort(function(a,b){return({high:0,medium:1,low:2}[a.priority]||1)-({high:0,medium:1,low:2}[b.priority]||1)});var done=fl.filter(function(x){return x.status==="done"&&!x.is_archived}).sort(function(a,b){return new Date(b.completed_at||0)-new Date(a.completed_at||0)});var ln=function(id){var f=lines.find(function(l){return l.id===id});return f?f.name:""};var cycle=async function(id,cur){var nx=cur==="todo"?"in_progress":cur==="in_progress"?"done":"todo";var u={status:nx};if(nx==="done")u.completed_at=new Date().toISOString();else u.completed_at=null;await upd("tasks",id,u);refresh()};var delT=async function(id){if(!confirm("Delete?"))return;await del("tasks",id);refresh()};var saveT=async function(id,v){await upd("tasks",id,v);sE(null);refresh()};function row(tk,isDone){if(editId===tk.id)return <TaskEditRow key={tk.id} tk={tk} lines={lines} t={t} onSave={saveT} onCancel={function(){sE(null)}}/>;return <TaskRow key={tk.id} tk={tk} lineName={ln(tk.work_line_id)} t={t} isDone={isDone} onCycle={cycle} onEdit={function(id){sE(id)}} onDel={delT}/>}return <div><div style={{display:"flex",gap:4,marginBottom:16,flexWrap:"wrap"}}><span style={filter==="all"?S.btnDk:S.btn} onClick={function(){sF("all")}}>ALL</span>{lines.map(function(w){return <span key={w.id} style={filter===w.id?S.btnDk:S.btn} onClick={function(){sF(w.id)}}>{w.name}</span>})}</div><div style={S.card}>{!pend.length&&!done.length&&<div style={{padding:28,textAlign:"center",color:C.pl,fontSize:15}}>{t.nt}</div>}{pend.map(function(tk){return row(tk,false)})}{done.length>0&&<div style={{padding:"12px 18px 4px"}}><span style={{fontSize:13,letterSpacing:2,color:C.pl}}>{t.dn}</span></div>}{done.map(function(tk){return row(tk,true)})}</div></div>}
+function WorkOv({t,lines,tasks,refresh}){var act=tasks.filter(function(x){return x.status!=="done"&&!x.is_archived});var ln=function(id){var f=lines.find(function(l){return l.id===id});return f?f.name:""};var [eId,sE]=useState(null);var saveL=async function(id,v){await upd("lines",id,v);sE(null);refresh()};var delL=async function(id){if(!confirm("Delete?"))return;await del("lines",id);refresh()};var wF=[{key:"name",label:"NAME"},{key:"next_action",label:"NEXT ACTION"},{key:"status",label:"STATUS",type:"select",options:[["on_track","On Track"],["at_risk","At Risk"],["blocked","Blocked"]]}];return <div><div style={{...S.card,padding:"14px 24px",display:"flex",gap:32,marginBottom:20,alignItems:"baseline"}}>{[[t.pd,act.length,C.p],[t.ip,act.filter(function(x){return x.status==="in_progress"}).length,C.p],[t.hi,act.filter(function(x){return x.priority==="high"}).length,C.dk]].map(function(r){return <div key={r[0]} style={{display:"flex",alignItems:"baseline",gap:6}}><span style={S.lb}>{r[0]}</span><span style={{fontSize:24,color:r[2]}}>{r[1]}</span></div>})}</div><div style={{display:"flex",gap:16,marginBottom:24,flexWrap:"wrap"}}>{lines.map(function(wl){if(eId===wl.id)return <div key={wl.id} style={{flex:"1 1 0",minWidth:200}}><LineEditCard line={wl} fields={wF} onSave={saveL} onCancel={function(){sE(null)}}/></div>;return <div key={wl.id} className="hp" style={{...S.card,padding:"18px 20px",flex:"1 1 0",minWidth:200,position:"relative"}}><div className="ha" style={{position:"absolute",top:10,right:10}}><span onClick={function(){sE(wl.id)}} style={{fontSize:14,color:C.pl,cursor:"pointer"}}>✎</span><span onClick={function(){delL(wl.id)}} style={{fontSize:14,color:C.pl,cursor:"pointer"}}>×</span></div><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10,paddingRight:40}}><span style={{fontSize:17}}>{wl.name}</span><span style={{fontSize:13,color:SC[wl.status]||C.lt,border:"1px solid",padding:"1px 8px"}}>{t[wl.status==="on_track"?"ok":wl.status==="at_risk"?"rk":"bk"]}</span></div>{wl.key_metric_value!=null&&<div style={{fontSize:32,color:C.p,lineHeight:1.2}}>{wl.key_metric_value}<span style={{fontSize:14,color:C.mu,marginLeft:6}}>{wl.key_metric_unit}</span></div>}{wl.key_metric_label&&<div style={{fontSize:13,color:C.mu,marginBottom:10}}>{wl.key_metric_label}</div>}{wl.next_action&&<div style={{fontSize:15,borderTop:"2px dashed "+C.fn,paddingTop:10}}>→ {wl.next_action}</div>}</div>})}</div><div style={S.st}>{t.rt}</div><div style={S.card}>{act.slice(0,5).map(function(tk){return <TaskRow key={tk.id} tk={tk} lineName={ln(tk.work_line_id)} t={t} isDone={false}/>})}{!act.length&&<div style={{padding:28,textAlign:"center",color:C.pl,fontSize:15}}>{t.nt}</div>}</div></div>}
+function WorkMt({t,metrics}){var sorted=[].concat(metrics).sort(function(a,b){return a.date.localeCompare(b.date)});var l7=sorted.slice(-7),p7=sorted.slice(-14,-7);var sm=function(a,k){return a.reduce(function(s,m){return s+(m[k]||0)},0)};var cmp=function(k){var c=sm(l7,k),p=sm(p7,k);if(!p)return{v:c,d:"flat",p:null};var pct=Math.round((c-p)/p*100);return{v:c,d:pct>0?"up":pct<0?"down":"flat",p:Math.abs(pct)}};var recent=sorted.slice(-14);var mx=Math.max.apply(null,recent.map(function(d){return Math.max(d.new_guanchayuan||0,d.new_chapin||0)}));if(mx<10)mx=10;if(!recent.length)return <div style={{...S.card,padding:28,textAlign:"center",color:C.pl}}>{t.nd}</div>;return <div><div style={{...S.card,padding:20,marginBottom:20}}><div style={S.st}>14 DAYS</div><div style={{height:140,display:"flex",alignItems:"flex-end",gap:4}}>{recent.map(function(d,i){return <div key={i} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:2}}><div style={{display:"flex",gap:2,alignItems:"flex-end",height:120,width:"100%"}}><div style={{flex:1,height:Math.max(3,(d.new_guanchayuan||0)/mx*120),background:C.p}}/><div style={{flex:1,height:Math.max(3,(d.new_chapin||0)/mx*120),background:C.gd}}/></div><span style={{fontSize:11,color:C.pl}}>{d.date.slice(8)}</span></div>})}</div><div style={{display:"flex",gap:20,marginTop:12,fontSize:14}}><span style={{display:"flex",alignItems:"center",gap:6}}><span style={{width:10,height:10,background:C.p}}/>{t.ob}</span><span style={{display:"flex",alignItems:"center",gap:6}}><span style={{width:10,height:10,background:C.gd}}/>{t.rv}</span></div></div><div style={{...S.card,padding:20,display:"flex",gap:40,flexWrap:"wrap"}}>{[["new_guanchayuan",t.ob],["new_chapin",t.rv],["new_negative",t.ng]].map(function(a){var c=cmp(a[0]);return <div key={a[0]} style={{textAlign:"center"}}><div style={{...S.lb,marginBottom:4}}>{a[1]}</div><div style={{fontSize:30,color:C.p}}>{c.v}</div>{c.p!=null&&<span style={{fontSize:14,color:c.d==="up"?C.lt:C.gd}}>{c.d==="up"?"↑":"↓"}{c.p}%</span>}</div>})}</div></div>}
+function WorkCx({t,ctx,dec,refresh}){var delCtx=async function(id){if(!confirm("Delete?"))return;await del("context_items",id);refresh()};var delDec=async function(id){if(!confirm("Delete?"))return;await del("decisions",id);refresh()};return <div><div style={{...S.card,padding:20,marginBottom:20}}><div style={S.st}>{t.pg}</div>{ctx.map(function(c){var tg=c.type||"";return <div key={c.id} className="hp" style={{display:"flex",gap:12,padding:"8px 0",borderBottom:"1px dashed "+C.fn,alignItems:"baseline"}}><span style={{fontSize:13,color:C.pl,width:48,flexShrink:0,textAlign:"right"}}>{fd(c.created_at)}</span><span style={{fontSize:13,color:TC[tg]||C.pl,border:"1px solid "+(TC[tg]||C.pl)+"60",padding:"1px 8px",flexShrink:0,minWidth:40,textAlign:"center"}}>{tg}</span><span style={{fontSize:15,color:C.tx,flex:1,lineHeight:1.5}}>{c.content}</span><div className="ha"><span onClick={function(){delCtx(c.id)}} style={{fontSize:14,color:C.pl,cursor:"pointer"}}>×</span></div></div>})}{!ctx.length&&<div style={{padding:12,textAlign:"center",color:C.pl}}>—</div>}</div><div style={{...S.card,padding:20}}><div style={S.st}>{t.dc}</div>{dec.map(function(d){return <div key={d.id} className="hp" style={{padding:"10px 0 10px 16px",borderLeft:"3px solid "+C.fn,marginBottom:10,position:"relative"}}><div className="ha" style={{position:"absolute",top:4,right:4}}><span onClick={function(){delDec(d.id)}} style={{fontSize:14,color:C.pl,cursor:"pointer"}}>×</span></div><div style={{fontSize:16}}>{d.decision}</div>{d.reasoning&&<div style={{fontSize:14,color:C.mu,marginTop:4}}>{d.reasoning}</div>}<div style={{fontSize:13,color:C.pl,marginTop:4}}>{d.made_by} · {fd(d.made_at)}</div></div>})}{!dec.length&&<div style={{padding:12,textAlign:"center",color:C.pl}}>—</div>}</div></div>}
+function LuxOv({t,lines,refresh}){var act=lines.filter(function(l){return l.status!=="done"});var dn=lines.filter(function(l){return l.status==="done"});var [eId,sE]=useState(null);var saveL=async function(id,v){await upd("lines",id,v);sE(null);refresh()};var delL=async function(id){if(!confirm("Delete?"))return;await del("lines",id);refresh()};var lF=[{key:"name",label:"NAME"},{key:"sub",label:"SUB"},{key:"description",label:"CURRENT"},{key:"next_action",label:"NEXT"}];function ri(p){if(p.icon_url)return <img src={p.icon_url} style={{width:32,height:32,objectFit:"cover"}}/>;return <span style={{fontSize:28}}>{p.icon||"📌"}</span>}return <div><div style={S.st}>{t.pj} ({act.length})</div><div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12,marginBottom:24}}>{act.map(function(p){if(eId===p.id)return <LineEditCard key={p.id} line={p} fields={lF} onSave={saveL} onCancel={function(){sE(null)}} showIcon={true}/>;return <div key={p.id} className="hp" style={{...S.card,padding:"16px 18px",position:"relative"}}><div className="ha" style={{position:"absolute",top:10,right:10}}><span onClick={function(){sE(p.id)}} style={{fontSize:14,color:C.pl,cursor:"pointer"}}>✎</span><span onClick={function(){delL(p.id)}} style={{fontSize:14,color:C.pl,cursor:"pointer"}}>×</span></div><div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10,paddingRight:36}}>{ri(p)}<div><div style={{fontSize:16}}>{p.name}</div><div style={{fontSize:13,color:C.pl}}>{p.sub}</div></div></div><div style={{fontSize:15,marginBottom:8}}>{p.description}</div>{p.next_action&&<div style={{fontSize:14,color:C.mu,borderTop:"1px dashed "+C.fn,paddingTop:8}}>→ {p.next_action}</div>}</div>})}</div>{dn.length>0&&<div><div style={S.st}>{t.cp} ({dn.length})</div><div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12}}>{dn.map(function(p){return <div key={p.id} style={{...S.cardDim,padding:"16px 18px"}}><div style={{display:"flex",alignItems:"center",gap:10}}><span style={{fontSize:28,opacity:.4}}>{p.icon||"📌"}</span><div><div style={{fontSize:16,color:C.mu}}>{p.name}</div><div style={{fontSize:13,color:C.bd}}>{p.sub}</div></div></div></div>})}</div></div>}</div>}
+function IdeaEditRow({idea,lines,onSave,onCancel}){var [content,sC]=useState(idea.content);var [lineId,sL]=useState(idea.line_id||"");return <div style={{display:"flex",gap:8,alignItems:"center"}}><input value={content} onChange={function(e){sC(e.target.value)}} style={{...S.input,flex:1,fontSize:14,padding:"6px 8px"}}/><select value={lineId} onChange={function(e){sL(e.target.value)}} style={{...S.input,width:100,fontSize:13,padding:"6px 8px"}}><option value="">—</option>{lines.map(function(l){return <option key={l.id} value={l.id}>{l.name}</option>})}</select><span onClick={function(){onSave(idea.id,{content:content,line_id:lineId||null})}} style={{...S.btnSm,fontSize:12}}>OK</span><span onClick={onCancel} style={{...S.btnSm,fontSize:12,color:C.mu,borderColor:C.bd}}>×</span></div>}
+function LuxId({t,ideas,lines,refresh}){var [sd,sD]=useState(false);var [eId,sE]=useState(null);var ac=ideas.filter(function(x){return x.status==="active"});var pr=ideas.filter(function(x){return x.status!=="active"});var updI=async function(id,st){await upd("ideas",id,{status:st});refresh()};var delI=async function(id){if(!confirm("Delete?"))return;await del("ideas",id);refresh()};var saveI=async function(id,v){await upd("ideas",id,v);sE(null);refresh()};return <div><div style={S.card}>{ac.map(function(i){if(eId===i.id)return <div key={i.id} style={{padding:"10px 18px",borderBottom:"1px dashed "+C.fn}}><IdeaEditRow idea={i} lines={lines} onSave={saveI} onCancel={function(){sE(null)}}/></div>;return <div key={i.id} className="hp" style={{display:"flex",alignItems:"flex-start",padding:"12px 18px",borderBottom:"1px dashed "+C.fn,gap:12}}><div style={{flex:1}}><div style={{fontSize:16,lineHeight:1.6}}>{i.content}</div><div style={{display:"flex",gap:10,marginTop:6,alignItems:"center"}}><span style={{fontSize:13,color:C.pl}}>{fd(i.created_at)}</span>{i.line_id&&<span style={{fontSize:13,color:C.lt,border:"1px solid "+C.fn,padding:"0 6px"}}>{(lines.find(function(l){return l.id===i.line_id})||{}).name||""}</span>}</div></div><div style={{display:"flex",gap:4,flexShrink:0,paddingTop:2}}><span onClick={function(){sE(i.id)}} style={{...S.btnSm,fontSize:13,padding:"3px 8px",color:C.pl,borderColor:C.fn,cursor:"pointer"}}>✎</span><span onClick={function(){updI(i.id,"adopted")}} style={{...S.btnSm,fontSize:13,padding:"3px 8px",color:C.lt,borderColor:C.fn,cursor:"pointer"}}>✓</span><span onClick={function(){updI(i.id,"dropped")}} style={{...S.btnSm,fontSize:13,padding:"3px 8px",color:C.mu,borderColor:C.fn,cursor:"pointer"}}>×</span></div></div>})}{!ac.length&&<div style={{padding:28,textAlign:"center",color:C.pl,fontSize:15}}>{t.ni}</div>}</div>{pr.length>0&&<div style={{marginTop:16}}><span onClick={function(){sD(!sd)}} style={{fontSize:14,color:C.pl,cursor:"pointer",letterSpacing:1}}>{sd?"▲":"▸"} {t.pr} ({pr.length})</span>{sd&&<div style={{...S.cardDim,marginTop:8}}>{pr.map(function(i){return <div key={i.id} className="hp" style={{display:"flex",padding:"8px 18px",borderBottom:"1px dashed #e8e8e8",gap:12,alignItems:"center"}}><span style={{fontSize:13,color:i.status==="adopted"?C.gd:C.bd,width:36,flexShrink:0}}>{i.status==="adopted"?t.ad:t.dp}</span><span style={{fontSize:15,color:C.mu,flex:1}}>{i.content}</span><span style={{fontSize:13,color:C.bd}}>{fd(i.created_at)}</span><div className="ha"><span onClick={function(){delI(i.id)}} style={{fontSize:14,color:C.pl,cursor:"pointer"}}>×</span></div></div>})}</div>}</div>}</div>}
+function IrisOv({t,lines,learnings,refresh}){var [eId,sE]=useState(null);var saveL=async function(id,v){await upd("lines",id,v);sE(null);refresh()};var delL=async function(id){if(!confirm("Delete?"))return;await del("lines",id);refresh()};var iF=[{key:"name",label:"NAME"},{key:"direction",label:"DIRECTION"},{key:"description",label:"NOW"},{key:"next_action",label:"NEXT"}];return <div><div style={{display:"flex",gap:16,marginBottom:24,flexWrap:"wrap"}}>{lines.map(function(wl){if(eId===wl.id)return <div key={wl.id} style={{flex:"1 1 280px"}}><LineEditCard line={wl} fields={iF} onSave={saveL} onCancel={function(){sE(null)}}/></div>;return <div key={wl.id} className="hp" style={{...S.card,padding:"18px 20px",flex:"1 1 280px",position:"relative"}}><div className="ha" style={{position:"absolute",top:10,right:10}}><span onClick={function(){sE(wl.id)}} style={{fontSize:14,color:C.pl,cursor:"pointer"}}>✎</span><span onClick={function(){delL(wl.id)}} style={{fontSize:14,color:C.pl,cursor:"pointer"}}>×</span></div><div style={{fontSize:17,marginBottom:12,paddingRight:36}}>{wl.name}</div>{wl.direction&&<div style={{marginBottom:8}}><div style={{fontSize:12,letterSpacing:1,color:C.gd,marginBottom:3}}>{t.dr}</div><div style={{fontSize:15}}>{wl.direction}</div></div>}<div style={{marginBottom:8}}><div style={{fontSize:12,letterSpacing:1,color:C.lt,marginBottom:3}}>{t.nw}</div><div style={{fontSize:15}}>{wl.description}</div></div>{wl.next_action&&<div style={{borderTop:"2px dashed "+C.fn,paddingTop:8}}><div style={{fontSize:12,letterSpacing:1,color:C.pl,marginBottom:3}}>{t.nx}</div><div style={{fontSize:15}}>→ {wl.next_action}</div></div>}</div>})}</div><div style={S.st}>{t.rl}</div><div style={S.card}>{learnings.slice(0,3).map(function(l){return <div key={l.id} style={{padding:"12px 18px",borderBottom:"1px dashed "+C.fn}}><div style={{fontSize:16,lineHeight:1.6}}>{l.content}</div><div style={{display:"flex",gap:10,marginTop:6,alignItems:"center",flexWrap:"wrap"}}><span style={{fontSize:13,color:C.pl}}>{fd(l.created_at)}</span>{l.source&&<span style={{fontSize:13,color:C.mu}}>· {l.source}</span>}{l.tags&&l.tags.map(function(tg){return <span key={tg} style={{fontSize:13,color:C.lt,border:"1px solid "+C.fn,padding:"0 6px"}}>{tg}</span>})}</div></div>})}{!learnings.length&&<div style={{padding:28,textAlign:"center",color:C.pl,fontSize:15}}>{t.nl}</div>}</div></div>}
+function LearnPg({t,learnings,refresh}){var last="";var delLr=async function(id){if(!confirm("Delete?"))return;await del("learnings",id);refresh()};return <div>{learnings.map(function(l){var dt=(l.created_at||"").slice(0,10);var show=dt!==last;last=dt;return <div key={l.id}>{show&&<div style={{fontSize:14,color:C.mu,padding:"14px 0 4px",display:"flex",alignItems:"center",gap:8}}><span style={{width:6,height:6,background:C.gd}}/>{dt}</div>}<div className="hp" style={{padding:"10px 0 10px 20px",borderLeft:"2px solid "+C.fn,display:"flex",alignItems:"flex-start"}}><div style={{flex:1}}><div style={{fontSize:16,lineHeight:1.7}}>{l.content}</div><div style={{display:"flex",gap:10,marginTop:6,alignItems:"center",flexWrap:"wrap"}}>{l.source&&<span style={{fontSize:13,color:C.mu}}>{l.source}</span>}{l.tags&&l.tags.map(function(tg){return <span key={tg} style={{fontSize:13,color:C.lt,border:"1px solid "+C.fn,padding:"0 6px"}}>{tg}</span>})}</div></div><div className="ha"><span onClick={function(){delLr(l.id)}} style={{fontSize:14,color:C.pl,cursor:"pointer"}}>×</span></div></div></div>})}{!learnings.length&&<div style={{...S.card,padding:28,textAlign:"center",color:C.pl,fontSize:15}}>{t.nl}</div>}</div>}
+function QA({sys,t,lines,refresh}){var [op,sO]=useState(false);var [mo,sM]=useState(false);var [tv,sT]=useState("");var [tw,sTw]=useState("");var [mf,sMf]=useState({a:"",b:"",c:"",n:"",ac:"",cv:"",no:""});var [lc,sLc]=useState("");var [ls,sLs]=useState("");var [ic,sIc]=useState("");var [il,sIl]=useState("");async function aT(){if(!tv.trim())return;await ins("tasks",{title:tv.trim(),work_line_id:tw||null,category:sys==="work"?"work":sys==="lux"?"lux":"self",status:"todo",priority:"medium"});sT("");sTw("");refresh()}async function sMe(){var r={date:td(),new_guanchayuan:parseInt(mf.a)||0,new_chapin:parseInt(mf.b)||0,curated_chapin:parseInt(mf.c)||0};if(mo){r.new_negative=parseInt(mf.n)||0;r.active_guanchayuan=parseInt(mf.ac)||0;r.conversion_rate=parseFloat(mf.cv)||null;r.notes=mf.no||null}await ups("daily_metrics",r,"date");sMf({a:"",b:"",c:"",n:"",ac:"",cv:"",no:""});refresh()}async function aL(){if(!lc.trim())return;await ins("learnings",{content:lc.trim(),source:ls.trim()||null,category:"self"});sLc("");sLs("");refresh()}async function aI(){if(!ic.trim())return;await ins("ideas",{content:ic.trim(),line_id:il||null,category:"lux"});sIc("");sIl("");refresh()}function ent(fn){return function(e){if(e.key==="Enter")fn()}}if(!op)return <div onClick={function(){sO(true)}} style={{position:"fixed",bottom:0,left:0,right:0,background:C.p,color:C.ws,padding:"14px 24px",fontSize:15,cursor:"pointer",textAlign:"center",letterSpacing:3,boxShadow:"0 -2px 0 "+C.dk,zIndex:50}}>+ QUICK ADD</div>;return <div style={{position:"fixed",bottom:0,left:0,right:0,background:C.cd,border:"2px solid "+C.p,borderBottom:"none",padding:"18px 28px",boxShadow:"0 -4px 12px rgba(26,45,92,.1)",zIndex:50}}><div style={{maxWidth:1100,marginLeft:ML,display:"flex",gap:20,alignItems:"flex-end",flexWrap:"wrap"}}>{sys==="work"&&<React.Fragment><div style={{flex:1,minWidth:240}}><div style={{...S.lb,marginBottom:8}}>{t.mt}</div><div style={{display:"flex",gap:10,alignItems:"flex-end"}}><div style={{flex:1}}><div style={{fontSize:12,color:C.mu,marginBottom:3}}>{t.ob}</div><input type="number" value={mf.a} onChange={function(e){sMf(Object.assign({},mf,{a:e.target.value}))}} onKeyDown={ent(sMe)} style={{...S.input,fontSize:14}}/></div><div style={{flex:1}}><div style={{fontSize:12,color:C.mu,marginBottom:3}}>{t.rv}</div><input type="number" value={mf.b} onChange={function(e){sMf(Object.assign({},mf,{b:e.target.value}))}} onKeyDown={ent(sMe)} style={{...S.input,fontSize:14}}/></div><div style={{flex:1}}><div style={{fontSize:12,color:C.gd,marginBottom:3}}>{t.cu}</div><input type="number" value={mf.c} onChange={function(e){sMf(Object.assign({},mf,{c:e.target.value}))}} onKeyDown={ent(sMe)} style={{...S.input,fontSize:14,color:C.gd}}/></div><span style={{fontSize:13,color:C.pl,cursor:"pointer",flexShrink:0}} onClick={function(){sM(!mo)}}>{mo?t.le:t.mo}</span><span onClick={sMe} style={{...S.btnDk,flexShrink:0}}>{t.sv}</span></div>{mo&&<div style={{display:"flex",gap:10,marginTop:10}}><div style={{flex:1}}><div style={{fontSize:12,color:C.mu,marginBottom:3}}>{t.ng}</div><input type="number" value={mf.n} onChange={function(e){sMf(Object.assign({},mf,{n:e.target.value}))}} style={{...S.input,fontSize:14}}/></div><div style={{flex:1}}><div style={{fontSize:12,color:C.mu,marginBottom:3}}>{t.ac}</div><input type="number" value={mf.ac} onChange={function(e){sMf(Object.assign({},mf,{ac:e.target.value}))}} style={{...S.input,fontSize:14}}/></div><div style={{flex:1}}><div style={{fontSize:12,color:C.mu,marginBottom:3}}>{t.cr}</div><input type="number" step="0.1" value={mf.cv} onChange={function(e){sMf(Object.assign({},mf,{cv:e.target.value}))}} style={{...S.input,fontSize:14}}/></div><div style={{flex:2}}><div style={{fontSize:12,color:C.mu,marginBottom:3}}>{t.no}</div><input value={mf.no} onChange={function(e){sMf(Object.assign({},mf,{no:e.target.value}))}} style={{...S.input,fontSize:14}}/></div></div>}</div><div style={{width:1,height:44,background:C.fn}}/></React.Fragment>}{sys==="iris"&&<React.Fragment><div style={{flex:1,minWidth:240}}><div style={{...S.lb,marginBottom:8}}>{t.ln}</div><div style={{display:"flex",gap:10}}><input value={lc} onChange={function(e){sLc(e.target.value)}} placeholder="今天理解了什么..." onKeyDown={ent(aL)} style={{...S.input,flex:2,fontSize:14}}/><input value={ls} onChange={function(e){sLs(e.target.value)}} placeholder={t.sc} onKeyDown={ent(aL)} style={{...S.input,flex:1,fontSize:14}}/><span onClick={aL} style={S.btnDk}>{t.al}</span></div></div><div style={{width:1,height:44,background:C.fn}}/></React.Fragment>}{sys==="lux"&&<React.Fragment><div style={{flex:1,minWidth:240}}><div style={{...S.lb,marginBottom:8}}>{t.il}</div><div style={{display:"flex",gap:10}}><input value={ic} onChange={function(e){sIc(e.target.value)}} placeholder={t.ip2} onKeyDown={ent(aI)} style={{...S.input,flex:2,fontSize:14}}/><select value={il} onChange={function(e){sIl(e.target.value)}} style={{...S.input,width:120,fontSize:14}}><option value="">—</option>{lines.filter(function(l){return l.status!=="done"}).map(function(l){return <option key={l.id} value={l.id}>{l.name}</option>})}</select><span onClick={aI} style={S.btnDk}>{t.ai}</span></div></div><div style={{width:1,height:44,background:C.fn}}/></React.Fragment>}<div style={{flex:1,minWidth:240}}><div style={{...S.lb,marginBottom:8}}>{t.tk}</div><div style={{display:"flex",gap:10}}><input placeholder={t.nt2} value={tv} onChange={function(e){sT(e.target.value)}} onKeyDown={ent(aT)} style={{...S.input,flex:1,fontSize:14}}/><select value={tw} onChange={function(e){sTw(e.target.value)}} style={{...S.input,width:100,fontSize:14}}><option value="">—</option>{lines.map(function(w){return <option key={w.id} value={w.id}>{w.name}</option>})}</select><span onClick={aT} style={S.btnDk}>{t.sv}</span></div></div><span style={{...S.btnSm,alignSelf:"flex-end"}} onClick={function(){sO(false)}}>×</span></div></div>}
+function App(){var [cn,sCn]=useState(false);var [sys,sSys]=useState("work");var [pg,sPg]=useState("ov");var [lang,sLang]=useState("zh");var [ld,sLd]=useState(true);var [lines,sLn]=useState([]);var [tasks,sTk]=useState([]);var [metrics,sMt]=useState([]);var [ctx,sCx]=useState([]);var [dec,sDc]=useState([]);var [learn,sLr]=useState([]);var [ideas,sId]=useState([]);var t=TX[lang];var ref=useCallback(async function(){var [a,b,c,d,e,f,g]=await Promise.all([fa("lines","order_index",true),fa("tasks","created_at",false),fa("daily_metrics","date",true),fa("context_items","created_at",false),fa("decisions","made_at",false),fa("learnings","created_at",false),fa("ideas","created_at",false)]);sLn(a);sTk(b);sMt(c);sCx(d);sDc(e);sLr(f);sId(g);sLd(false)},[]);useEffect(function(){var h=getH();if(h&&h.url&&h.key){initSB(h.url,h.key);sCn(true);ref()}else sLd(false)},[]);var cl=lines.filter(function(l){return sys==="work"?l.category==="work":sys==="lux"?l.category==="lux":l.category==="self"});var ct=tasks.filter(function(x){return sys==="work"?x.category==="work":sys==="lux"?x.category==="lux":x.category==="self"});var addLine=async function(){var n=prompt("Name:");if(!n)return;var cat=sys==="work"?"work":sys==="lux"?"lux":"self";await ins("lines",{id:n.toLowerCase().replace(/\s+/g,"-"),name:n,category:cat,status:cat==="lux"?"active":"on_track",order_index:lines.length+1});ref()};if(!cn&&!ld)return <ConnectScreen onConnect={function(){sCn(true);ref()}} t={t}/>;if(ld)return <div style={{height:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}}><span style={{color:C.pl,letterSpacing:3,fontSize:16}}>{t.ld}</span></div>;return <div><SysTabs sys={sys} setSys={sSys} setPg={sPg}/><div style={{maxWidth:1100,marginLeft:ML,padding:"28px 32px 90px"}}><Nav pg={pg} setPg={sPg} lang={lang} setLang={sLang} t={t} sys={sys} onAddLine={addLine}/>{sys==="work"&&<React.Fragment>{pg==="ov"&&<WorkOv t={t} lines={cl} tasks={ct} refresh={ref}/>}{pg==="tk"&&<TasksList tasks={ct} lines={cl} t={t} refresh={ref}/>}{pg==="mt"&&<WorkMt t={t} metrics={metrics}/>}{pg==="cx"&&<WorkCx t={t} ctx={ctx.filter(function(c){return c.category==="work"||!c.category})} dec={dec.filter(function(d){return d.category==="work"||!d.category})} refresh={ref}/>}</React.Fragment>}{sys==="lux"&&<React.Fragment>{pg==="ov"&&<LuxOv t={t} lines={cl} refresh={ref}/>}{pg==="tk"&&<TasksList tasks={ct} lines={cl} t={t} refresh={ref}/>}{pg==="id"&&<LuxId t={t} ideas={ideas} lines={cl} refresh={ref}/>}</React.Fragment>}{sys==="iris"&&<React.Fragment>{pg==="ov"&&<IrisOv t={t} lines={cl} learnings={learn} refresh={ref}/>}{pg==="tk"&&<TasksList tasks={ct} lines={cl} t={t} refresh={ref}/>}{pg==="ln"&&<LearnPg t={t} learnings={learn} refresh={ref}/>}</React.Fragment>}<div style={{textAlign:"center",padding:"24px 0"}}><span style={{fontSize:13,letterSpacing:3,color:C.mu}}>{t.ft}</span></div></div><QA sys={sys} t={t} lines={cl} refresh={ref}/></div>}
 ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
 </script>
 </body>
