@@ -2,22 +2,23 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Rack</title>
 <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{font-family:'DotGothic16',monospace;background:#f0f0f0;overflow-x:hidden}
+body{font-family:'DotGothic16',monospace;background:#f0f0f0;overflow:hidden;height:100vh}
 input,textarea,button,select{font-family:'DotGothic16',monospace;-webkit-appearance:none;border-radius:0}
-#root{min-height:100vh;background:#f0f0f0;background-image:radial-gradient(circle,#d8d8d8 1px,transparent 1px);background-size:16px 16px}
+#root{height:100vh;background:#f0f0f0;background-image:radial-gradient(circle,#d8d8d8 1px,transparent 1px);background-size:16px 16px;display:flex;flex-direction:column}
 @keyframes pulse{0%,100%{opacity:.7;transform:scale(1)}50%{opacity:1;transform:scale(1.15)}}
-.sys-tabs{position:fixed;left:12px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:0;z-index:60;border:2px solid #2b4280;box-shadow:3px 3px 0 #c7d2ea}
+.sys-tabs{position:fixed;left:12px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;z-index:60;border:2px solid #2b4280;box-shadow:3px 3px 0 #c7d2ea}
 .sys-tab{padding:10px 10px;font-size:12px;letter-spacing:2px;cursor:pointer;text-align:center;border-bottom:1px solid #c7d2ea;min-width:56px}
 .sys-tab:last-child{border-bottom:none}
 .del-btn{opacity:0;transition:opacity .15s;cursor:pointer;font-size:11px;color:#c7d2ea;padding:0 4px}
 .del-btn:hover{color:#c45555}
 *:hover>.del-btn{opacity:1}
 .edit-input{border:none;border-bottom:2px solid #2b4280;background:transparent;font-family:inherit;outline:none;color:#222;width:100%}
+.page-fill{flex:1;overflow:auto;display:flex;flex-direction:column}
 </style>
 </head>
 <body>
@@ -28,377 +29,367 @@ input,textarea,button,select{font-family:'DotGothic16',monospace;-webkit-appeara
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <script type="text/babel">
 const {useState,useEffect,useCallback}=React;
-const CL={primary:"#2b4280",dark:"#1a2d5c",light:"#5571b8",pale:"#8a9fd4",faint:"#c7d2ea",wash:"#e8edf6",card:"#fafafa",text:"#222",muted:"#999",border:"#ccc",shadow:"#c7d2ea",gold:"#d4a03c",goldLight:"#e0c068"};
+const C={p:"#2b4280",dk:"#1a2d5c",lt:"#5571b8",pl:"#8a9fd4",fn:"#c7d2ea",ws:"#e8edf6",cd:"#fafafa",tx:"#222",mu:"#999",bd:"#ccc",sh:"#c7d2ea",gd:"#d4a03c",gl:"#e0c068"};
 const S={
-  card:{background:CL.card,border:"2px solid "+CL.primary,boxShadow:"3px 3px 0 "+CL.shadow},
-  cardDim:{background:CL.card,border:"2px solid "+CL.border,boxShadow:"2px 2px 0 #e0e0e0"},
-  btn:{padding:"5px 12px",border:"2px solid "+CL.primary,background:CL.card,color:CL.primary,fontSize:12,letterSpacing:1,cursor:"pointer",boxShadow:"2px 2px 0 "+CL.border,fontFamily:"inherit"},
-  btnDk:{padding:"5px 12px",border:"2px solid "+CL.primary,background:CL.primary,color:CL.wash,fontSize:12,letterSpacing:1,cursor:"pointer",boxShadow:"2px 2px 0 "+CL.pale,fontFamily:"inherit"},
-  btnSm:{padding:"3px 8px",border:"2px solid "+CL.primary,background:CL.card,color:CL.primary,fontSize:11,cursor:"pointer",fontFamily:"inherit"},
-  input:{width:"100%",padding:"6px 8px",border:"2px solid "+CL.primary,background:CL.card,fontFamily:"inherit",fontSize:13,color:CL.primary,outline:"none",boxSizing:"border-box"},
-  label:{fontSize:11,color:CL.muted,letterSpacing:1},
-  secTitle:{fontSize:11,letterSpacing:2,color:CL.pale,marginBottom:6,paddingBottom:4,borderBottom:"2px dashed "+CL.faint}
+  card:{background:C.cd,border:"2px solid "+C.p,boxShadow:"3px 3px 0 "+C.sh},
+  cardDim:{background:C.cd,border:"2px solid "+C.bd,boxShadow:"2px 2px 0 #e0e0e0"},
+  btn:{padding:"5px 12px",border:"2px solid "+C.p,background:C.cd,color:C.p,fontSize:12,letterSpacing:1,cursor:"pointer",boxShadow:"2px 2px 0 "+C.bd,fontFamily:"inherit"},
+  btnDk:{padding:"5px 12px",border:"2px solid "+C.p,background:C.p,color:C.ws,fontSize:12,letterSpacing:1,cursor:"pointer",boxShadow:"2px 2px 0 "+C.pl,fontFamily:"inherit"},
+  btnSm:{padding:"3px 8px",border:"2px solid "+C.p,background:C.cd,color:C.p,fontSize:11,cursor:"pointer",fontFamily:"inherit"},
+  input:{width:"100%",padding:"6px 8px",border:"2px solid "+C.p,background:C.cd,fontFamily:"inherit",fontSize:13,color:C.p,outline:"none",boxSizing:"border-box"},
+  lb:{fontSize:11,color:C.mu,letterSpacing:1},
+  st:{fontSize:11,letterSpacing:2,color:C.pl,marginBottom:6,paddingBottom:4,borderBottom:"2px dashed "+C.fn}
 };
 const TX={
-  en:{overview:"OVERVIEW",tasks:"TASKS",metrics:"METRICS",context:"CONTEXT",learn:"LEARN",ideas:"IDEAS",high:"H",med:"M",low:"L",pending:"PENDING",inProg:"PROGRESS",done:"DONE",noTasks:"no tasks",recentTasks:"RECENT TASKS",progress:"PROGRESS",decisions:"DECISIONS",footer:"RACK · Built with # by Iris & Claude",save:"SAVE",more:"▼ more",less:"▲ less",quickAdd:"+ QUICK ADD",newTask:"+ new task...",observers:"OBSERVERS",reviews:"REVIEWS",curated:"CURATED",negative:"NEGATIVE",active:"ACTIVE",convRate:"CONV %",notes:"NOTES",onTrack:"OK",atRisk:"RISK",blocked:"BLOCK",direction:"DIRECTION",current:"NOW",nextStep:"NEXT",recentLearn:"RECENT LEARNINGS",noLearn:"nothing yet",addLearn:"ADD",source:"source",addIdea:"ADD",ideaPh:"new idea...",noIdeas:"no ideas yet",projects:"PROJECTS",completed:"COMPLETED",processed:"PROCESSED",adopt:"adopt",drop:"drop",ideaLabel:"IDEA",loading:"loading...",connect:"CONNECT",urlPh:"Supabase URL",keyPh:"Anon Key",connectBtn:"CONNECT",connectErr:"connection failed",noData:"no data",newLine:"+ LINE",del:"×",edit:"edit",cancel:"cancel",hi:"HIGH"},
-  zh:{overview:"总览",tasks:"任务",metrics:"数据",context:"上下文",learn:"学习",ideas:"想法",high:"高",med:"中",low:"低",pending:"待办",inProg:"进行中",done:"已完成",noTasks:"没有任务",recentTasks:"近期任务",progress:"进展",decisions:"决策",footer:"RACK · Built with # by Iris & Claude",save:"保存",more:"▼ 更多",less:"▲ 收起",quickAdd:"+ QUICK ADD",newTask:"+ 新任务...",observers:"观猹员",reviews:"猹评",curated:"精选",negative:"差评",active:"活跃",convRate:"转化率%",notes:"备注",onTrack:"正常",atRisk:"注意",blocked:"阻塞",direction:"方向",current:"现在",nextStep:"下一步",recentLearn:"最近学到的",noLearn:"还没有记录",addLearn:"添加",source:"来源",addIdea:"添加",ideaPh:"新想法...",noIdeas:"还没有想法",projects:"项目",completed:"已完成",processed:"已处理",adopt:"采纳",drop:"放弃",ideaLabel:"想法",loading:"加载中...",connect:"连接",urlPh:"Supabase URL",keyPh:"Anon Key",connectBtn:"连接",connectErr:"连接失败",noData:"暂无数据",newLine:"+ 线路",del:"×",edit:"编辑",cancel:"取消",hi:"高"}
+  en:{ov:"OVERVIEW",tk:"TASKS",mt:"METRICS",cx:"CONTEXT",ln:"LEARN",id:"IDEAS",h:"H",m:"M",l:"L",pd:"PENDING",ip:"IN PROGRESS",dn:"DONE",nt:"no tasks",rt:"RECENT TASKS",pg:"PROGRESS",dc:"DECISIONS",ft:"RACK \u00b7 Built with # by Iris & Claude",sv:"SAVE",mo:"\u25bc more",le:"\u25b2 less",qa:"+ QUICK ADD",nt2:"+ new task...",ob:"OBSERVERS",rv:"REVIEWS",cu:"CURATED",ng:"NEGATIVE",ac:"ACTIVE",cr:"CONV %",no:"NOTES",ok:"OK",rk:"RISK",bk:"BLOCK",dr:"DIRECTION",nw:"NOW",nx:"NEXT",rl:"RECENT LEARNINGS",nl:"nothing yet",al:"ADD",sc:"source",ai:"ADD",ip2:"new idea...",ni:"no ideas yet",pj:"PROJECTS",cp:"COMPLETED",pr:"PROCESSED",ad:"adopt",dp:"drop",il:"IDEA",ld:"loading...",cn:"CONNECT",u1:"Supabase URL",u2:"Anon Key",cb:"CONNECT",ce:"failed",nd:"no data",nl2:"+ LINE",x:"\u00d7",hi:"HIGH"},
+  zh:{ov:"\u603b\u89c8",tk:"\u4efb\u52a1",mt:"\u6570\u636e",cx:"\u4e0a\u4e0b\u6587",ln:"\u5b66\u4e60",id:"\u60f3\u6cd5",h:"\u9ad8",m:"\u4e2d",l:"\u4f4e",pd:"\u5f85\u529e",ip:"\u8fdb\u884c\u4e2d",dn:"\u5df2\u5b8c\u6210",nt:"\u6ca1\u6709\u4efb\u52a1",rt:"\u8fd1\u671f\u4efb\u52a1",pg:"\u8fdb\u5c55",dc:"\u51b3\u7b56",ft:"RACK \u00b7 Built with # by Iris & Claude",sv:"\u4fdd\u5b58",mo:"\u25bc \u66f4\u591a",le:"\u25b2 \u6536\u8d77",qa:"+ QUICK ADD",nt2:"+ \u65b0\u4efb\u52a1...",ob:"\u89c2\u7315\u5458",rv:"\u7315\u8bc4",cu:"\u7cbe\u9009",ng:"\u5dee\u8bc4",ac:"\u6d3b\u8dc3",cr:"\u8f6c\u5316\u7387%",no:"\u5907\u6ce8",ok:"\u6b63\u5e38",rk:"\u6ce8\u610f",bk:"\u963b\u585e",dr:"\u65b9\u5411",nw:"\u73b0\u5728",nx:"\u4e0b\u4e00\u6b65",rl:"\u6700\u8fd1\u5b66\u5230\u7684",nl:"\u8fd8\u6ca1\u6709\u8bb0\u5f55",al:"\u6dfb\u52a0",sc:"\u6765\u6e90",ai:"\u6dfb\u52a0",ip2:"\u65b0\u60f3\u6cd5...",ni:"\u8fd8\u6ca1\u6709\u60f3\u6cd5",pj:"\u9879\u76ee",cp:"\u5df2\u5b8c\u6210",pr:"\u5df2\u5904\u7406",ad:"\u91c7\u7eb3",dp:"\u653e\u5f03",il:"\u60f3\u6cd5",ld:"\u52a0\u8f7d\u4e2d...",cn:"\u8fde\u63a5",u1:"Supabase URL",u2:"Anon Key",cb:"\u8fde\u63a5",ce:"\u8fde\u63a5\u5931\u8d25",nd:"\u6682\u65e0\u6570\u636e",nl2:"+ \u7ebf\u8def",x:"\u00d7",hi:"\u9ad8"}
 };
 var sb=null;
 function initSB(u,k){sb=supabase.createClient(u,k)}
-async function fetchAll(t,o,a){if(!sb)return[];try{var q=sb.from(t).select("*");if(o)q=q.order(o,{ascending:a!==false});var r=await q;return r.error?[]:r.data||[]}catch(e){return[]}}
-async function insertRow(t,r){if(!sb)return null;try{var res=await sb.from(t).insert(r).select();return res.error?null:(res.data||[])[0]||null}catch(e){return null}}
-async function updateRow(t,id,u){if(!sb)return null;try{var res=await sb.from(t).update(u).eq("id",id).select();return res.error?null:(res.data||[])[0]||null}catch(e){return null}}
-async function deleteRow(t,id){if(!sb)return false;try{var res=await sb.from(t).delete().eq("id",id);return!res.error}catch(e){return false}}
-async function upsertRow(t,r,c){if(!sb)return null;try{var res=await sb.from(t).upsert(r,c?{onConflict:c}:{}).select();return res.error?null:(res.data||[])[0]||null}catch(e){return null}}
+async function fa(t,o,a){if(!sb)return[];try{var q=sb.from(t).select("*");if(o)q=q.order(o,{ascending:a!==false});var r=await q;return r.error?[]:r.data||[]}catch(e){return[]}}
+async function ins(t,r){if(!sb)return null;try{var res=await sb.from(t).insert(r).select();return res.error?null:(res.data||[])[0]}catch(e){return null}}
+async function upd(t,id,u){if(!sb)return null;try{var res=await sb.from(t).update(u).eq("id",id).select();return res.error?null:(res.data||[])[0]}catch(e){return null}}
+async function del(t,id){if(!sb)return false;try{var res=await sb.from(t).delete().eq("id",id);return!res.error}catch(e){return false}}
+async function ups(t,r,c){if(!sb)return null;try{var res=await sb.from(t).upsert(r,c?{onConflict:c}:{}).select();return res.error?null:(res.data||[])[0]}catch(e){return null}}
 function td(){return new Date().toISOString().slice(0,10)}
 function fd(d){return d?d.slice(5,10).replace("-","/"):""}
-function getHash(){try{var h=decodeURIComponent(window.location.hash.slice(1));return h?JSON.parse(h):null}catch(e){return null}}
-function setHash(o){window.location.hash=encodeURIComponent(JSON.stringify(o))}
-var TAG_C={推进:CL.light,观察:CL.gold,想法:CL.pale,push:CL.light,observe:CL.gold,idea:CL.pale,priority:CL.light,blocker:"#c45555",activity:CL.gold,observation:CL.pale};
-var PRI_C={high:CL.dark,medium:CL.gold,low:CL.pale};
-var STAT_C={on_track:CL.light,at_risk:CL.gold,blocked:"#c45555",active:CL.light};
+function getH(){try{var h=decodeURIComponent(window.location.hash.slice(1));return h?JSON.parse(h):null}catch(e){return null}}
+function setH(o){window.location.hash=encodeURIComponent(JSON.stringify(o))}
+var TC={"\u63a8\u8fdb":C.lt,"\u89c2\u5bdf":C.gd,"\u60f3\u6cd5":C.pl,priority:C.lt,blocker:"#c45555",activity:C.gd,observation:C.pl};
+var PC={high:C.dk,medium:C.gd,low:C.pl};
+var SC={on_track:C.lt,at_risk:C.gd,blocked:"#c45555",active:C.lt};
 
 function ConnectScreen({onConnect,t}){
-  var [url,setUrl]=useState("");var [key,setKey]=useState("");var [err,setErr]=useState("");var [ld,setLd]=useState(false);
-  async function go(){if(!url||!key)return;setLd(true);setErr("");try{initSB(url.trim().replace(/\/+$/,""),key.trim());var test=await sb.from("work_status").select("id").limit(1);if(test.error)throw 0;setHash({url:url.trim().replace(/\/+$/,""),key:key.trim()});onConnect()}catch(e){setErr(t.connectErr);sb=null}setLd(false)}
-  return (<div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}}>
+  var [url,su]=useState("");var [key,sk]=useState("");var [err,se]=useState("");var [ld,sl]=useState(false);
+  async function go(){if(!url||!key)return;sl(true);se("");try{initSB(url.trim().replace(/\/+$/,""),key.trim());var r=await sb.from("work_status").select("id").limit(1);if(r.error)throw 0;setH({url:url.trim().replace(/\/+$/,""),key:key.trim()});onConnect()}catch(e){se(t.ce);sb=null}sl(false)}
+  return <div style={{height:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}}>
     <div style={{...S.card,padding:28,width:360,textAlign:"center"}}>
-      <div style={{fontSize:18,color:CL.dark,letterSpacing:3,marginBottom:20}}>RACK <span style={{color:CL.gold}}>#</span></div>
-      <input value={url} onChange={function(e){setUrl(e.target.value)}} placeholder={t.urlPh} style={{...S.input,marginBottom:8}}/>
-      <input value={key} onChange={function(e){setKey(e.target.value)}} placeholder={t.keyPh} type="password" onKeyDown={function(e){if(e.key==="Enter")go()}} style={{...S.input,marginBottom:12}}/>
+      <div style={{fontSize:18,color:C.dk,letterSpacing:3,marginBottom:20}}>RACK <span style={{color:C.gd}}>#</span></div>
+      <input value={url} onChange={function(e){su(e.target.value)}} placeholder={t.u1} style={{...S.input,marginBottom:8}}/>
+      <input value={key} onChange={function(e){sk(e.target.value)}} placeholder={t.u2} type="password" onKeyDown={function(e){if(e.key==="Enter")go()}} style={{...S.input,marginBottom:12}}/>
       {err&&<div style={{color:"#c45555",fontSize:11,marginBottom:6}}>{err}</div>}
-      <span onClick={go} style={{...S.btnDk,width:"100%",display:"block",textAlign:"center",padding:"8px 0"}}>{ld?t.loading:t.connectBtn}</span>
+      <span onClick={go} style={{...S.btnDk,width:"100%",display:"block",textAlign:"center",padding:"8px 0"}}>{ld?t.ld:t.cb}</span>
     </div>
-  </div>);
+  </div>;
 }
 
-function SysTabs({system,setSystem,setPage}){
-  return (<div className="sys-tabs">{[["work","WORK"],["lux","LUX"],["iris","IRIS"]].map(function(a){return <div key={a[0]} className="sys-tab" onClick={function(){setSystem(a[0]);setPage("overview")}} style={{background:system===a[0]?CL.primary:CL.card,color:system===a[0]?CL.wash:CL.pale}}>{a[1]}</div>})}</div>);
+function SysTabs({sys,setSys,setP}){
+  return <div className="sys-tabs">{[["work","WORK"],["lux","LUX"],["iris","IRIS"]].map(function(a){return <div key={a[0]} className="sys-tab" onClick={function(){setSys(a[0]);setP("ov")}} style={{background:sys===a[0]?C.p:C.cd,color:sys===a[0]?C.ws:C.pl}}>{a[1]}</div>})}</div>;
 }
-function Nav({page,setPage,lang,setLang,t,system,onDisconnect}){
-  var tm={work:[["overview",t.overview],["tasks",t.tasks],["metrics",t.metrics],["context",t.context]],lux:[["overview",t.overview],["tasks",t.tasks],["ideas",t.ideas]],iris:[["overview",t.overview],["tasks",t.tasks],["learn",t.learn]]};
-  return (<div style={{...S.card,padding:"8px 16px",display:"flex",alignItems:"center",gap:10,marginBottom:12}}>
-    <span style={{fontSize:15,color:CL.dark,marginRight:6}}>RACK <span style={{color:CL.gold}}>#</span></span>
-    <div style={{display:"flex",gap:3}}>{(tm[system]||[]).map(function(a){return <span key={a[0]} style={page===a[0]?S.btnDk:S.btn} onClick={function(){setPage(a[0])}}>{a[1]}</span>})}</div>
+function Nav({pg,setP,lang,setLang,t,sys,disc}){
+  var tm={work:[["ov",t.ov],["tk",t.tk],["mt",t.mt],["cx",t.cx]],lux:[["ov",t.ov],["tk",t.tk],["id",t.id]],iris:[["ov",t.ov],["tk",t.tk],["ln",t.ln]]};
+  return <div style={{...S.card,padding:"8px 16px",display:"flex",alignItems:"center",gap:10,flexShrink:0}}>
+    <span style={{fontSize:15,color:C.dk,marginRight:6}}>RACK <span style={{color:C.gd}}>#</span></span>
+    <div style={{display:"flex",gap:3}}>{(tm[sys]||[]).map(function(a){return <span key={a[0]} style={pg===a[0]?S.btnDk:S.btn} onClick={function(){setP(a[0])}}>{a[1]}</span>})}</div>
     <div style={{marginLeft:"auto",display:"flex",alignItems:"center",gap:8}}>
-      <div style={{display:"flex",border:"2px solid "+CL.primary}}>{["en","zh"].map(function(l){return <span key={l} onClick={function(){setLang(l)}} style={{fontSize:10,padding:"2px 8px",background:lang===l?CL.primary:CL.card,color:lang===l?CL.wash:CL.primary,cursor:"pointer"}}>{l.toUpperCase()}</span>})}</div>
-      <span onClick={onDisconnect} style={{fontSize:10,color:CL.pale,cursor:"pointer"}} title="disconnect">⏻</span>
-      <div style={{width:10,height:10,background:CL.faint,animation:"pulse 2.5s ease-in-out infinite"}}/>
+      <div style={{display:"flex",border:"2px solid "+C.p}}>{["en","zh"].map(function(l){return <span key={l} onClick={function(){setLang(l)}} style={{fontSize:10,padding:"2px 8px",background:lang===l?C.p:C.cd,color:lang===l?C.ws:C.p,cursor:"pointer"}}>{l.toUpperCase()}</span>})}</div>
+      <span onClick={disc} style={{fontSize:10,color:C.pl,cursor:"pointer"}}>{"\u23fb"}</span>
+      <div style={{width:10,height:10,background:C.fn,animation:"pulse 2.5s ease-in-out infinite"}}/>
     </div>
-  </div>);
+  </div>;
 }
 
-function TaskRow({tk,lineName,t,isDone,onCycle,onDel,onEdit}){
-  var [editing,setEditing]=useState(false);var [v,setV]=useState(tk.title);
-  function save(){if(v.trim()&&v!==tk.title)onEdit(tk.id,{title:v.trim()});setEditing(false)}
-  return (<div style={{display:"flex",alignItems:"center",padding:isDone?"4px 14px":"6px 14px",borderBottom:"1px dashed "+CL.faint}}>
-    <div style={{width:24,flexShrink:0}} onClick={function(e){e.stopPropagation();onCycle(tk.id,tk.status)}}>
-      <span style={{width:12,height:12,display:"inline-block",cursor:"pointer",border:"2px solid "+(isDone?CL.gold:tk.status==="in_progress"?CL.primary:CL.border),background:isDone?CL.gold:tk.status==="in_progress"?CL.primary:"transparent"}}/>
+function TRow({tk,ln,t,dn,cyc,rm,ed}){
+  var [e,se]=useState(false);var [v,sv]=useState(tk.title);
+  function save(){if(v.trim()&&v!==tk.title)ed(tk.id,{title:v.trim()});se(false)}
+  return <div style={{display:"flex",alignItems:"center",padding:dn?"3px 12px":"5px 12px",borderBottom:"1px dashed "+C.fn}}>
+    <div style={{width:22,flexShrink:0}} onClick={function(){cyc(tk.id,tk.status)}}>
+      <span style={{width:12,height:12,display:"inline-block",cursor:"pointer",border:"2px solid "+(dn?C.gd:tk.status==="in_progress"?C.p:C.bd),background:dn?C.gd:tk.status==="in_progress"?C.p:"transparent"}}/>
     </div>
-    <div style={{width:24,flexShrink:0}}>{!isDone&&<span style={{fontSize:10,color:PRI_C[tk.priority]}}>{tk.priority==="high"?t.high:tk.priority==="medium"?t.med:t.low}</span>}</div>
+    <div style={{width:22,flexShrink:0}}>{!dn&&<span style={{fontSize:10,color:PC[tk.priority]}}>{tk.priority==="high"?t.h:tk.priority==="medium"?t.m:t.l}</span>}</div>
     <div style={{flex:1,minWidth:0}}>
-      {editing?<input className="edit-input" value={v} onChange={function(e){setV(e.target.value)}} onBlur={save} onKeyDown={function(e){if(e.key==="Enter")save();if(e.key==="Escape")setEditing(false)}} autoFocus style={{fontSize:13}}/>
-      :<span onClick={function(){if(!isDone)setEditing(true)}} style={{fontSize:13,color:isDone?CL.muted:CL.text,textDecoration:isDone?"line-through":"none",cursor:isDone?"default":"text"}}>{tk.title}</span>}
+      {e?<input className="edit-input" value={v} onChange={function(ev){sv(ev.target.value)}} onBlur={save} onKeyDown={function(ev){if(ev.key==="Enter")save();if(ev.key==="Escape")se(false)}} autoFocus style={{fontSize:12}}/>
+      :<span onClick={function(){if(!dn)se(true)}} style={{fontSize:12,color:dn?C.mu:C.tx,textDecoration:dn?"line-through":"none",cursor:dn?"default":"text"}}>{tk.title}</span>}
     </div>
-    {lineName&&<span style={{fontSize:11,color:CL.pale,marginLeft:8,flexShrink:0}}>{lineName}</span>}
-    {tk.due_date&&!isDone&&<span style={{fontSize:11,color:CL.muted,marginLeft:8,flexShrink:0}}>{fd(tk.due_date)}</span>}
-    {isDone&&tk.completed_at&&<span style={{fontSize:10,color:CL.pale,marginLeft:8,flexShrink:0}}>{fd(tk.completed_at)}</span>}
-    <span className="del-btn" onClick={function(e){e.stopPropagation();onDel(tk.id)}} style={{marginLeft:6}}>{t.del}</span>
-  </div>);
+    {ln&&<span style={{fontSize:10,color:C.pl,marginLeft:6,flexShrink:0}}>{ln}</span>}
+    {tk.due_date&&!dn&&<span style={{fontSize:10,color:C.mu,marginLeft:6,flexShrink:0}}>{fd(tk.due_date)}</span>}
+    {dn&&tk.completed_at&&<span style={{fontSize:9,color:C.pl,marginLeft:6,flexShrink:0}}>{fd(tk.completed_at)}</span>}
+    <span className="del-btn" onClick={function(ev){ev.stopPropagation();rm(tk.id)}} style={{marginLeft:4}}>{t.x}</span>
+  </div>;
 }
-function TasksList({tasks,lines,t,onCycle,onDel,onEdit}){
-  var [filter,setFilter]=useState("all");
-  var fl=filter==="all"?tasks:tasks.filter(function(x){return x.work_line_id===filter});
-  var pending=fl.filter(function(x){return x.status!=="done"&&!x.is_archived}).sort(function(a,b){return({high:0,medium:1,low:2}[a.priority]||1)-({high:0,medium:1,low:2}[b.priority]||1)});
+function TList({tasks,lines,t,cyc,rm,ed}){
+  var [f,sf]=useState("all");
+  var fl=f==="all"?tasks:tasks.filter(function(x){return x.work_line_id===f});
+  var pend=fl.filter(function(x){return x.status!=="done"&&!x.is_archived}).sort(function(a,b){return({high:0,medium:1,low:2}[a.priority]||1)-({high:0,medium:1,low:2}[b.priority]||1)});
   var done=fl.filter(function(x){return x.status==="done"&&!x.is_archived}).sort(function(a,b){return new Date(b.completed_at||0)-new Date(a.completed_at||0)});
-  var ln=function(id){var f=lines.find(function(l){return l.id===id});return f?f.name:""};
-  return (<div>
-    <div style={{display:"flex",gap:3,marginBottom:10,flexWrap:"wrap"}}>
-      <span style={filter==="all"?S.btnDk:S.btn} onClick={function(){setFilter("all")}}>ALL</span>
-      {lines.map(function(w){return <span key={w.id} style={filter===w.id?S.btnDk:S.btn} onClick={function(){setFilter(w.id)}}>{w.name}</span>})}
+  var ln=function(id){var r=lines.find(function(l){return l.id===id});return r?r.name:""};
+  return <div className="page-fill">
+    <div style={{display:"flex",gap:3,marginBottom:8,flexWrap:"wrap",flexShrink:0}}>
+      <span style={f==="all"?S.btnDk:S.btn} onClick={function(){sf("all")}}>ALL</span>
+      {lines.map(function(w){return <span key={w.id} style={f===w.id?S.btnDk:S.btn} onClick={function(){sf(w.id)}}>{w.name}</span>})}
     </div>
-    <div style={S.card}>
-      {pending.length===0&&done.length===0&&<div style={{padding:20,textAlign:"center",color:CL.pale,fontSize:12}}>{t.noTasks}</div>}
-      {pending.map(function(tk){return <TaskRow key={tk.id} tk={tk} lineName={ln(tk.work_line_id)} t={t} isDone={false} onCycle={onCycle} onDel={onDel} onEdit={onEdit}/>})}
-      {done.length>0&&<div style={{padding:"8px 14px 2px"}}><span style={{fontSize:10,letterSpacing:2,color:CL.pale}}>{t.done}</span></div>}
-      {done.map(function(tk){return <TaskRow key={tk.id} tk={tk} lineName={ln(tk.work_line_id)} t={t} isDone={true} onCycle={onCycle} onDel={onDel} onEdit={onEdit}/>})}
+    <div style={{...S.card,flex:1,overflow:"auto"}}>
+      {!pend.length&&!done.length&&<div style={{padding:20,textAlign:"center",color:C.pl,fontSize:12}}>{t.nt}</div>}
+      {pend.map(function(tk){return <TRow key={tk.id} tk={tk} ln={ln(tk.work_line_id)} t={t} dn={false} cyc={cyc} rm={rm} ed={ed}/>})}
+      {done.length>0&&<div style={{padding:"6px 12px 2px"}}><span style={{fontSize:10,letterSpacing:2,color:C.pl}}>{t.dn}</span></div>}
+      {done.map(function(tk){return <TRow key={tk.id} tk={tk} ln={ln(tk.work_line_id)} t={t} dn={true} cyc={cyc} rm={rm} ed={ed}/>})}
     </div>
-  </div>);
+  </div>;
 }
 
-function StatBar({items}){
-  return (<div style={{...S.card,padding:"8px 16px",display:"flex",gap:24,marginBottom:10,alignItems:"baseline"}}>
-    {items.map(function(it){return <div key={it[0]} style={{display:"flex",alignItems:"baseline",gap:4}}>
-      <span style={{fontSize:11,color:CL.muted,letterSpacing:1}}>{it[0]}</span>
-      <span style={{fontSize:18,color:it[2]||CL.primary}}>{it[1]}</span>
-    </div>})}
-  </div>);
-}
-
-function EditableCard({wl,t,onSave,fields}){
-  var [editing,setEditing]=useState(false);var [vals,setVals]=useState({});
-  function start(){var v={};fields.forEach(function(f){v[f.key]=wl[f.key]||""});setVals(v);setEditing(true)}
-  function save(){onSave(wl.id,vals);setEditing(false)}
-  if(editing) return (<div style={{...S.card,padding:"10px 14px",flex:"1 1 0",minWidth:200}}>
-    {fields.map(function(f){return <div key={f.key} style={{marginBottom:6}}><div style={{fontSize:10,color:CL.muted}}>{f.label}</div><input className="edit-input" value={vals[f.key]||""} onChange={function(e){var nv=Object.assign({},vals);nv[f.key]=e.target.value;setVals(nv)}} style={{fontSize:12}}/></div>})}
-    <div style={{display:"flex",gap:4,marginTop:6}}><span onClick={save} style={{...S.btnSm,fontSize:10}}>OK</span><span onClick={function(){setEditing(false)}} style={{...S.btnSm,fontSize:10,color:CL.muted,borderColor:CL.border}}>{t.cancel}</span></div>
-  </div>);
-  return null;
-}
-
-function WorkOverview({lines,tasks,t,onCycle,onDel,onEditTask,onEditLine}){
-  var active=tasks.filter(function(x){return x.status!=="done"&&!x.is_archived});
-  var ln=function(id){var f=lines.find(function(l){return l.id===id});return f?f.name:""};
-  var [editId,setEditId]=useState(null);
-  return (<div>
-    <StatBar items={[[t.pending,active.length],[t.inProg,active.filter(function(x){return x.status==="in_progress"}).length],[t.hi||t.high,active.filter(function(x){return x.priority==="high"}).length,CL.dark]]}/>
-    <div style={{display:"flex",gap:10,marginBottom:12}}>
-      {lines.map(function(wl){
-        if(editId===wl.id) return <EditableCard key={wl.id} wl={wl} t={t} fields={[{key:"name",label:"Name"},{key:"next_action",label:"Next"},{key:"status",label:"Status"}]} onSave={function(id,v){onEditLine(id,v);setEditId(null)}}/>;
-        return (<div key={wl.id} style={{...S.card,padding:"10px 14px",flex:"1 1 0",minWidth:180,cursor:"default"}} onDoubleClick={function(){setEditId(wl.id)}}>
-          <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}><span style={{fontSize:13}}>{wl.name}</span><span style={{fontSize:10,color:STAT_C[wl.status]||CL.light,border:"1px solid",padding:"0 6px"}}>{t[wl.status==="on_track"?"onTrack":wl.status==="at_risk"?"atRisk":"blocked"]||wl.status}</span></div>
-          {wl.key_metric_value!=null&&<div style={{fontSize:20,color:CL.primary}}>{wl.key_metric_value}<span style={{fontSize:11,color:CL.muted,marginLeft:4}}>{wl.key_metric_unit||""}</span></div>}
-          {wl.key_metric_label&&<div style={{fontSize:11,color:CL.muted,marginBottom:6}}>{wl.key_metric_label}</div>}
-          {wl.next_action&&<div style={{fontSize:12,borderTop:"1px dashed "+CL.faint,paddingTop:6}}>→ {wl.next_action}</div>}
-        </div>)})}
+function WOv({lines,tasks,t,cyc,rm,edT,edL}){
+  var act=tasks.filter(function(x){return x.status!=="done"&&!x.is_archived});
+  var ln=function(id){var r=lines.find(function(l){return l.id===id});return r?r.name:""};
+  var [eId,sE]=useState(null);
+  return <div style={{display:"flex",flexDirection:"column",flex:1}}>
+    <div style={{...S.card,padding:"6px 16px",display:"flex",gap:20,marginBottom:8,flexShrink:0,alignItems:"baseline"}}>
+      {[[t.pd,act.length,C.p],[t.ip,act.filter(function(x){return x.status==="in_progress"}).length,C.p],[t.hi||t.h,act.filter(function(x){return x.priority==="high"}).length,C.dk]].map(function(i){return <div key={i[0]} style={{display:"flex",alignItems:"baseline",gap:4}}><span style={{fontSize:11,color:C.mu,letterSpacing:1}}>{i[0]}</span><span style={{fontSize:16,color:i[2]}}>{i[1]}</span></div>})}
     </div>
-    <div style={S.secTitle}>{t.recentTasks}</div>
-    <div style={S.card}>{active.slice(0,5).map(function(tk){return <TaskRow key={tk.id} tk={tk} lineName={ln(tk.work_line_id)} t={t} isDone={false} onCycle={onCycle} onDel={onDel} onEdit={onEditTask}/>})}</div>
-  </div>);
+    <div style={{display:"flex",gap:10,flex:1,minHeight:0}}>
+      <div style={{width:300,flexShrink:0,display:"flex",flexDirection:"column",gap:6,overflow:"auto"}}>
+        {lines.map(function(wl){
+          if(eId===wl.id){
+            var fs=[{k:"name",l:"Name"},{k:"next_action",l:"Next"},{k:"status",l:"Status"}];
+            var [vs,sV]=useState(function(){var o={};fs.forEach(function(f){o[f.k]=wl[f.k]||""});return o});
+            return <div key={wl.id} style={{...S.card,padding:"8px 12px"}}>
+              {fs.map(function(f){return <div key={f.k} style={{marginBottom:4}}><div style={{fontSize:9,color:C.mu}}>{f.l}</div><input className="edit-input" value={vs[f.k]||""} onChange={function(e){var n=Object.assign({},vs);n[f.k]=e.target.value;sV(n)}} style={{fontSize:11}}/></div>})}
+              <div style={{display:"flex",gap:3,marginTop:4}}><span onClick={function(){edL(wl.id,vs);sE(null)}} style={{...S.btnSm,fontSize:9}}>OK</span><span onClick={function(){sE(null)}} style={{...S.btnSm,fontSize:9,color:C.mu,borderColor:C.bd}}>X</span></div>
+            </div>}
+          return <div key={wl.id} style={{...S.card,padding:"8px 12px"}} onDoubleClick={function(){sE(wl.id)}}>
+            <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}><span style={{fontSize:13}}>{wl.name}</span><span style={{fontSize:10,color:SC[wl.status]||C.lt,border:"1px solid",padding:"0 5px"}}>{t[wl.status==="on_track"?"ok":wl.status==="at_risk"?"rk":"bk"]||wl.status}</span></div>
+            {wl.key_metric_value!=null&&<div style={{fontSize:18,color:C.p}}>{wl.key_metric_value}<span style={{fontSize:10,color:C.mu,marginLeft:3}}>{wl.key_metric_unit||""}</span></div>}
+            {wl.key_metric_label&&<div style={{fontSize:10,color:C.mu,marginBottom:4}}>{wl.key_metric_label}</div>}
+            {wl.next_action&&<div style={{fontSize:11,borderTop:"1px dashed "+C.fn,paddingTop:4}}>{"\u2192"} {wl.next_action}</div>}
+          </div>})}
+      </div>
+      <div style={{flex:1,display:"flex",flexDirection:"column",minWidth:0}}>
+        <div style={S.st}>{t.rt}</div>
+        <div style={{...S.card,flex:1,overflow:"auto"}}>
+          {act.slice(0,12).map(function(tk){return <TRow key={tk.id} tk={tk} ln={ln(tk.work_line_id)} t={t} dn={false} cyc={cyc} rm={rm} ed={edT}/>})}
+          {!act.length&&<div style={{padding:20,textAlign:"center",color:C.pl,fontSize:12}}>{t.nt}</div>}
+        </div>
+      </div>
+    </div>
+  </div>;
 }
-function WorkMetrics({metrics,t}){
+function WMt({metrics,t}){
   var sorted=[].concat(metrics).sort(function(a,b){return a.date.localeCompare(b.date)});
   var l7=sorted.slice(-7),p7=sorted.slice(-14,-7);var sm=function(a,k){return a.reduce(function(s,m){return s+(m[k]||0)},0)};
   var cmp=function(k){var c=sm(l7,k),p=sm(p7,k);if(!p)return{v:c,d:"flat",p:null};var pct=Math.round((c-p)/p*100);return{v:c,d:pct>0?"up":pct<0?"down":"flat",p:Math.abs(pct)}};
-  var recent=sorted.slice(-14);var maxV=Math.max.apply(null,recent.map(function(d){return Math.max(d.new_guanchayuan||0,d.new_chapin||0)}));if(maxV<10)maxV=10;
-  if(!recent.length)return <div style={{...S.card,padding:20,textAlign:"center",color:CL.pale}}>{t.noData}</div>;
-  return (<div>
-    <div style={{...S.card,padding:14,marginBottom:10}}><div style={S.secTitle}>14 DAYS</div>
-      <div style={{height:90,display:"flex",alignItems:"flex-end",gap:3}}>{recent.map(function(d,i){return <div key={i} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:1}}>
-        <div style={{display:"flex",gap:1,alignItems:"flex-end",height:72,width:"100%"}}><div style={{flex:1,height:Math.max(2,(d.new_guanchayuan||0)/maxV*72),background:CL.primary}}/><div style={{flex:1,height:Math.max(2,(d.new_chapin||0)/maxV*72),background:CL.gold}}/></div>
-        <span style={{fontSize:8,color:CL.pale}}>{d.date.slice(8)}</span></div>})}</div>
-      <div style={{display:"flex",gap:16,marginTop:8,fontSize:11}}><span style={{display:"flex",alignItems:"center",gap:4}}><span style={{width:8,height:8,background:CL.primary}}/>{t.observers}</span><span style={{display:"flex",alignItems:"center",gap:4}}><span style={{width:8,height:8,background:CL.gold}}/>{t.reviews}</span></div></div>
-    <div style={{...S.card,padding:14,display:"flex",gap:32,flexWrap:"wrap"}}>{[["new_guanchayuan",t.observers],["new_chapin",t.reviews],["new_negative",t.negative]].map(function(a){var c=cmp(a[0]);return <div key={a[0]} style={{textAlign:"center"}}><div style={{fontSize:11,color:CL.muted,marginBottom:2}}>{a[1]}</div><div style={{fontSize:20,color:CL.primary}}>{c.v}</div>{c.p!=null&&<span style={{fontSize:11,color:c.d==="up"?CL.light:CL.gold}}>{c.d==="up"?"↑":"↓"}{c.p}%</span>}</div>})}</div>
-  </div>);
+  var recent=sorted.slice(-14);var mx=Math.max.apply(null,recent.map(function(d){return Math.max(d.new_guanchayuan||0,d.new_chapin||0)}));if(mx<10)mx=10;
+  if(!recent.length)return <div style={{...S.card,padding:20,textAlign:"center",color:C.pl}}>{t.nd}</div>;
+  return <div className="page-fill">
+    <div style={{...S.card,padding:14,marginBottom:10,flexShrink:0}}><div style={S.st}>14 DAYS</div>
+      <div style={{height:120,display:"flex",alignItems:"flex-end",gap:3}}>{recent.map(function(d,i){return <div key={i} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:1}}>
+        <div style={{display:"flex",gap:1,alignItems:"flex-end",height:100,width:"100%"}}><div style={{flex:1,height:Math.max(2,(d.new_guanchayuan||0)/mx*100),background:C.p}}/><div style={{flex:1,height:Math.max(2,(d.new_chapin||0)/mx*100),background:C.gd}}/></div>
+        <span style={{fontSize:8,color:C.pl}}>{d.date.slice(8)}</span></div>})}</div>
+      <div style={{display:"flex",gap:16,marginTop:8,fontSize:11}}><span style={{display:"flex",alignItems:"center",gap:4}}><span style={{width:8,height:8,background:C.p}}/>{t.ob}</span><span style={{display:"flex",alignItems:"center",gap:4}}><span style={{width:8,height:8,background:C.gd}}/>{t.rv}</span></div></div>
+    <div style={{...S.card,padding:14,display:"flex",gap:32,flexWrap:"wrap"}}>{[["new_guanchayuan",t.ob],["new_chapin",t.rv],["new_negative",t.ng]].map(function(a){var c=cmp(a[0]);return <div key={a[0]} style={{textAlign:"center"}}><div style={{fontSize:11,color:C.mu,marginBottom:2}}>{a[1]}</div><div style={{fontSize:20,color:C.p}}>{c.v}</div>{c.p!=null&&<span style={{fontSize:11,color:c.d==="up"?C.lt:C.gd}}>{c.d==="up"?"\u2191":"\u2193"}{c.p}%</span>}</div>})}</div>
+  </div>;
 }
-function WorkContext({contextItems,decisions,t}){
-  return (<div>
-    <div style={{...S.card,padding:14,marginBottom:10}}><div style={S.secTitle}>{t.progress}</div>
-      {contextItems.map(function(c){var tag=c.type||c.tag||"";return <div key={c.id} style={{display:"flex",gap:8,padding:"5px 0",borderBottom:"1px dashed "+CL.faint}}>
-        <span style={{fontSize:11,color:CL.pale,width:40,flexShrink:0}}>{fd(c.created_at)}</span>
-        <span style={{fontSize:10,color:TAG_C[tag]||CL.pale,border:"1px solid "+(TAG_C[tag]||CL.pale)+"60",padding:"0 5px",flexShrink:0}}>{tag}</span>
-        <span style={{fontSize:13,color:CL.text,flex:1,lineHeight:1.4}}>{c.content}</span></div>})}
-      {!contextItems.length&&<div style={{padding:12,textAlign:"center",color:CL.pale}}>—</div>}</div>
-    <div style={{...S.card,padding:14}}><div style={S.secTitle}>{t.decisions}</div>
-      {decisions.map(function(d){return <div key={d.id} style={{padding:"6px 0 6px 10px",borderLeft:"3px solid "+CL.faint,marginBottom:6}}>
-        <div style={{fontSize:13}}>{d.decision}</div>{d.reasoning&&<div style={{fontSize:12,color:CL.muted,marginTop:2}}>{d.reasoning}</div>}
-        <div style={{fontSize:11,color:CL.pale,marginTop:2}}>{d.made_by||""} · {fd(d.made_at)}</div></div>})}
-      {!decisions.length&&<div style={{padding:12,textAlign:"center",color:CL.pale}}>—</div>}</div>
-  </div>);
+function WCx({ctx,dec,t}){
+  return <div className="page-fill" style={{gap:10}}>
+    <div style={{...S.card,padding:14,flex:1,overflow:"auto"}}><div style={S.st}>{t.pg}</div>
+      {ctx.map(function(c){var tg=c.type||c.tag||"";return <div key={c.id} style={{display:"flex",gap:8,padding:"4px 0",borderBottom:"1px dashed "+C.fn}}>
+        <span style={{fontSize:10,color:C.pl,width:36,flexShrink:0}}>{fd(c.created_at)}</span>
+        <span style={{fontSize:10,color:TC[tg]||C.pl,border:"1px solid "+(TC[tg]||C.pl)+"60",padding:"0 4px",flexShrink:0}}>{tg}</span>
+        <span style={{fontSize:12,color:C.tx,flex:1,lineHeight:1.4}}>{c.content}</span></div>})}
+      {!ctx.length&&<div style={{padding:12,textAlign:"center",color:C.pl}}>{"\u2014"}</div>}</div>
+    <div style={{...S.card,padding:14,flex:1,overflow:"auto"}}><div style={S.st}>{t.dc}</div>
+      {dec.map(function(d){return <div key={d.id} style={{padding:"5px 0 5px 10px",borderLeft:"3px solid "+C.fn,marginBottom:4}}>
+        <div style={{fontSize:12}}>{d.decision}</div>{d.reasoning&&<div style={{fontSize:11,color:C.mu,marginTop:2}}>{d.reasoning}</div>}
+        <div style={{fontSize:10,color:C.pl,marginTop:2}}>{d.made_by||""} {"\u00b7"} {fd(d.made_at)}</div></div>})}
+      {!dec.length&&<div style={{padding:12,textAlign:"center",color:C.pl}}>{"\u2014"}</div>}</div>
+  </div>;
 }
 
-function LuxOverview({lines,t,onEditLine,onAddLine}){
-  var [editId,setEditId]=useState(null);
+function LOv({lines,t,edL,addL}){
   var act=lines.filter(function(l){return l.status!=="done"});var dn=lines.filter(function(l){return l.status==="done"});
-  return (<div>
-    <div style={S.secTitle}>{t.projects} ({act.length})</div>
-    <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,marginBottom:12}}>
-      {act.map(function(p){
-        if(editId===p.id) return <EditableCard key={p.id} wl={p} t={t} fields={[{key:"name",label:"Name"},{key:"next_action",label:"Next"}]} onSave={function(id,v){onEditLine(id,v);setEditId(null)}}/>;
-        return <div key={p.id} style={{...S.card,padding:"10px 12px"}} onDoubleClick={function(){setEditId(p.id)}}>
-          <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>{p.icon&&<span style={{fontSize:20}}>{p.icon}</span>}<div><div style={{fontSize:13}}>{p.name}</div>{p.description&&<div style={{fontSize:10,color:CL.pale}}>{p.description}</div>}</div></div>
-          {p.next_action&&<div style={{fontSize:11,color:CL.muted,borderTop:"1px dashed "+CL.faint,paddingTop:4}}>→ {p.next_action}</div>}
-        </div>})}
+  return <div className="page-fill">
+    <div style={S.st}>{t.pj} ({act.length})</div>
+    <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,marginBottom:8}}>
+      {act.map(function(p){return <div key={p.id} style={{...S.card,padding:"8px 10px"}} onDoubleClick={function(){}}>
+        <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:4}}>{p.icon&&<span style={{fontSize:18}}>{p.icon}</span>}<div><div style={{fontSize:12}}>{p.name}</div>{p.description&&<div style={{fontSize:9,color:C.pl}}>{p.description}</div>}</div></div>
+        {p.next_action&&<div style={{fontSize:10,color:C.mu,borderTop:"1px dashed "+C.fn,paddingTop:3}}>{"\u2192"} {p.next_action}</div>}
+      </div>})}
     </div>
-    {dn.length>0&&<div><div style={S.secTitle}>{t.completed} ({dn.length})</div>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,marginBottom:12}}>
-        {dn.map(function(p){return <div key={p.id} style={{...S.cardDim,padding:"10px 12px"}}>
-          <div style={{display:"flex",alignItems:"center",gap:8}}>{p.icon&&<span style={{fontSize:20,opacity:.4}}>{p.icon}</span>}<span style={{fontSize:13,color:CL.muted}}>{p.name}</span></div></div>})}
+    {dn.length>0&&<div><div style={S.st}>{t.cp} ({dn.length})</div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,marginBottom:8}}>
+        {dn.map(function(p){return <div key={p.id} style={{...S.cardDim,padding:"8px 10px"}}>
+          <div style={{display:"flex",alignItems:"center",gap:6}}>{p.icon&&<span style={{fontSize:18,opacity:.4}}>{p.icon}</span>}<span style={{fontSize:12,color:C.mu}}>{p.name}</span></div></div>})}
       </div></div>}
-    <span onClick={onAddLine} style={{...S.btnSm,color:CL.pale,borderColor:CL.faint}}>{t.newLine}</span>
-  </div>);
+    <span onClick={addL} style={{...S.btnSm,color:C.pl,borderColor:C.fn}}>{t.nl2}</span>
+  </div>;
 }
-function LuxIdeas({ideas,linesAll,t,onAdopt,onDrop,onDel}){
-  var [showDone,setShowDone]=useState(false);
-  var actv=ideas.filter(function(x){return x.status==="active"});var proc=ideas.filter(function(x){return x.status!=="active"});
-  return (<div>
-    <div style={S.card}>
-      {actv.map(function(idea){return <div key={idea.id} style={{display:"flex",alignItems:"flex-start",padding:"8px 14px",borderBottom:"1px dashed "+CL.faint,gap:8}}>
-        <div style={{flex:1}}><div style={{fontSize:13,lineHeight:1.5}}>{idea.content}</div>
-          <div style={{display:"flex",gap:8,marginTop:4,alignItems:"center"}}><span style={{fontSize:11,color:CL.pale}}>{fd(idea.created_at)}</span>
-            {idea.line_id&&<span style={{fontSize:10,color:CL.light,border:"1px solid "+CL.faint,padding:"0 4px"}}>{(linesAll.find(function(l){return l.id===idea.line_id})||{}).name||""}</span>}</div></div>
-        <div style={{display:"flex",gap:3,flexShrink:0,paddingTop:2}}>
-          <span onClick={function(){onAdopt(idea.id)}} style={{...S.btnSm,fontSize:10,padding:"1px 6px",color:CL.light,borderColor:CL.faint,cursor:"pointer"}}>✓</span>
-          <span onClick={function(){onDrop(idea.id)}} style={{...S.btnSm,fontSize:10,padding:"1px 6px",color:CL.muted,borderColor:CL.faint,cursor:"pointer"}}>×</span>
+function LId({ideas,lns,t,adp,drp,rm}){
+  var [sd,sD]=useState(false);
+  var ac=ideas.filter(function(x){return x.status==="active"});var pr=ideas.filter(function(x){return x.status!=="active"});
+  return <div className="page-fill">
+    <div style={{...S.card,flex:1,overflow:"auto"}}>
+      {ac.map(function(i){return <div key={i.id} style={{display:"flex",alignItems:"flex-start",padding:"6px 12px",borderBottom:"1px dashed "+C.fn,gap:8}}>
+        <div style={{flex:1}}><div style={{fontSize:12,lineHeight:1.5}}>{i.content}</div>
+          <div style={{display:"flex",gap:6,marginTop:3,alignItems:"center"}}><span style={{fontSize:10,color:C.pl}}>{fd(i.created_at)}</span>
+            {i.line_id&&<span style={{fontSize:9,color:C.lt,border:"1px solid "+C.fn,padding:"0 3px"}}>{(lns.find(function(l){return l.id===i.line_id})||{}).name||""}</span>}</div></div>
+        <div style={{display:"flex",gap:2,flexShrink:0}}>
+          <span onClick={function(){adp(i.id)}} style={{...S.btnSm,fontSize:9,padding:"1px 5px",color:C.lt,borderColor:C.fn,cursor:"pointer"}}>{"\u2713"}</span>
+          <span onClick={function(){drp(i.id)}} style={{...S.btnSm,fontSize:9,padding:"1px 5px",color:C.mu,borderColor:C.fn,cursor:"pointer"}}>{"\u00d7"}</span>
         </div>
       </div>})}
-      {!actv.length&&<div style={{padding:20,textAlign:"center",color:CL.pale,fontSize:12}}>{t.noIdeas}</div>}
+      {!ac.length&&<div style={{padding:20,textAlign:"center",color:C.pl,fontSize:12}}>{t.ni}</div>}
     </div>
-    {proc.length>0&&<div style={{marginTop:10}}>
-      <span onClick={function(){setShowDone(!showDone)}} style={{fontSize:11,color:CL.pale,cursor:"pointer"}}>{showDone?"▲":"▸"} {t.processed} ({proc.length})</span>
-      {showDone&&<div style={{...S.cardDim,marginTop:6}}>
-        {proc.map(function(idea){return <div key={idea.id} style={{display:"flex",padding:"5px 14px",borderBottom:"1px dashed #e8e8e8",gap:8,alignItems:"center"}}>
-          <span style={{fontSize:10,color:idea.status==="adopted"?CL.gold:CL.border,width:28}}>{idea.status==="adopted"?t.adopt:t.drop}</span>
-          <span style={{fontSize:12,color:CL.muted,flex:1}}>{idea.content}</span>
-          <span className="del-btn" onClick={function(){onDel(idea.id)}}>{t.del}</span></div>})}
+    {pr.length>0&&<div style={{marginTop:8,flexShrink:0}}>
+      <span onClick={function(){sD(!sd)}} style={{fontSize:10,color:C.pl,cursor:"pointer"}}>{sd?"\u25b2":"\u25b8"} {t.pr} ({pr.length})</span>
+      {sd&&<div style={{...S.cardDim,marginTop:4,maxHeight:120,overflow:"auto"}}>
+        {pr.map(function(i){return <div key={i.id} style={{display:"flex",padding:"4px 12px",borderBottom:"1px dashed #e8e8e8",gap:8,alignItems:"center"}}>
+          <span style={{fontSize:9,color:i.status==="adopted"?C.gd:C.bd,width:26}}>{i.status==="adopted"?t.ad:t.dp}</span>
+          <span style={{fontSize:11,color:C.mu,flex:1}}>{i.content}</span>
+          <span className="del-btn" onClick={function(){rm(i.id)}}>{t.x}</span></div>})}
       </div>}</div>}
-  </div>);
+  </div>;
 }
 
-function IrisOverview({lines,learnings,t,onEditLine,onAddLine}){
-  var [editId,setEditId]=useState(null);
-  return (<div>
-    <div style={{display:"flex",gap:10,marginBottom:12,flexWrap:"wrap"}}>
-      {lines.map(function(wl){
-        if(editId===wl.id) return <EditableCard key={wl.id} wl={wl} t={t} fields={[{key:"name",label:"Name"},{key:"direction",label:"Direction"},{key:"next_action",label:"Next"}]} onSave={function(id,v){onEditLine(id,v);setEditId(null)}}/>;
-        return <div key={wl.id} style={{...S.card,padding:"10px 14px",flex:"1 1 240px"}} onDoubleClick={function(){setEditId(wl.id)}}>
-          <div style={{fontSize:14,marginBottom:8}}>{wl.name}</div>
-          {wl.direction&&<div style={{marginBottom:6}}><div style={{fontSize:10,letterSpacing:1,color:CL.gold,marginBottom:2}}>{t.direction}</div><div style={{fontSize:12}}>{wl.direction}</div></div>}
-          {wl.next_action&&<div style={{borderTop:"1px dashed "+CL.faint,paddingTop:6}}><div style={{fontSize:10,letterSpacing:1,color:CL.pale,marginBottom:2}}>{t.nextStep}</div><div style={{fontSize:12}}>→ {wl.next_action}</div></div>}
-        </div>})}
+function IOv({lines,learnings,t,edL,addL}){
+  return <div style={{display:"flex",flexDirection:"column",flex:1}}>
+    <div style={{display:"flex",gap:10,marginBottom:8,flexWrap:"wrap",flexShrink:0}}>
+      {lines.map(function(wl){return <div key={wl.id} style={{...S.card,padding:"8px 12px",flex:"1 1 220px"}} onDoubleClick={function(){}}>
+        <div style={{fontSize:13,marginBottom:6}}>{wl.name}</div>
+        {wl.direction&&<div style={{marginBottom:4}}><div style={{fontSize:9,letterSpacing:1,color:C.gd,marginBottom:1}}>{t.dr}</div><div style={{fontSize:11}}>{wl.direction}</div></div>}
+        {wl.next_action&&<div style={{borderTop:"1px dashed "+C.fn,paddingTop:4}}><div style={{fontSize:9,letterSpacing:1,color:C.pl,marginBottom:1}}>{t.nx}</div><div style={{fontSize:11}}>{"\u2192"} {wl.next_action}</div></div>}
+      </div>})}
+      <span onClick={addL} style={{...S.btnSm,color:C.pl,borderColor:C.fn,alignSelf:"flex-start",marginTop:4}}>{t.nl2}</span>
     </div>
-    <span onClick={onAddLine} style={{...S.btnSm,color:CL.pale,borderColor:CL.faint,marginBottom:10,display:"inline-block"}}>{t.newLine}</span>
-    <div style={S.secTitle}>{t.recentLearn}</div>
-    <div style={S.card}>{learnings.slice(0,3).map(function(l){return <div key={l.id} style={{padding:"8px 14px",borderBottom:"1px dashed "+CL.faint}}>
-      <div style={{fontSize:13,lineHeight:1.5}}>{l.content}</div>
-      <div style={{display:"flex",gap:8,marginTop:4,alignItems:"center",flexWrap:"wrap"}}><span style={{fontSize:11,color:CL.pale}}>{fd(l.created_at)}</span>
-        {l.source&&<span style={{fontSize:11,color:CL.muted}}>· {l.source}</span>}
-        {l.tags&&l.tags.map(function(tg){return <span key={tg} style={{fontSize:10,color:CL.light,border:"1px solid "+CL.faint,padding:"0 4px"}}>{tg}</span>})}</div></div>})}
-      {!learnings.length&&<div style={{padding:20,textAlign:"center",color:CL.pale,fontSize:12}}>{t.noLearn}</div>}
+    <div style={S.st}>{t.rl}</div>
+    <div style={{...S.card,flex:1,overflow:"auto"}}>{learnings.slice(0,5).map(function(l){return <div key={l.id} style={{padding:"6px 12px",borderBottom:"1px dashed "+C.fn}}>
+      <div style={{fontSize:12,lineHeight:1.5}}>{l.content}</div>
+      <div style={{display:"flex",gap:6,marginTop:3,alignItems:"center",flexWrap:"wrap"}}><span style={{fontSize:10,color:C.pl}}>{fd(l.created_at)}</span>
+        {l.source&&<span style={{fontSize:10,color:C.mu}}>{"\u00b7"} {l.source}</span>}
+        {l.tags&&l.tags.map(function(tg){return <span key={tg} style={{fontSize:9,color:C.lt,border:"1px solid "+C.fn,padding:"0 3px"}}>{tg}</span>})}</div></div>})}
+      {!learnings.length&&<div style={{padding:20,textAlign:"center",color:C.pl,fontSize:12}}>{t.nl}</div>}
     </div>
-  </div>);
+  </div>;
 }
-function LearnPage({learnings,t,onDel}){
+function ILn({learnings,t,rm}){
   var last="";
-  return (<div>{learnings.map(function(l){var dt=(l.created_at||"").slice(0,10);var show=dt!==last;last=dt;return <div key={l.id}>
-    {show&&<div style={{fontSize:11,color:CL.muted,padding:"10px 0 3px",display:"flex",alignItems:"center",gap:6}}><span style={{width:5,height:5,background:CL.gold}}/>{dt}</div>}
-    <div style={{padding:"6px 0 6px 14px",borderLeft:"2px solid "+CL.faint,display:"flex",alignItems:"flex-start"}}>
-      <div style={{flex:1}}><div style={{fontSize:13,lineHeight:1.6}}>{l.content}</div>
-        <div style={{display:"flex",gap:8,marginTop:4,alignItems:"center",flexWrap:"wrap"}}>
-          {l.source&&<span style={{fontSize:11,color:CL.muted}}>{l.source}</span>}
-          {l.tags&&l.tags.map(function(tg){return <span key={tg} style={{fontSize:10,color:CL.light,border:"1px solid "+CL.faint,padding:"0 4px"}}>{tg}</span>})}</div></div>
-      <span className="del-btn" onClick={function(){onDel(l.id)}}>{t.del}</span>
-    </div></div>})}
-    {!learnings.length&&<div style={{padding:20,textAlign:"center",color:CL.pale,fontSize:12}}>{t.noLearn}</div>}
-  </div>);
+  return <div className="page-fill">
+    <div style={{...S.card,flex:1,overflow:"auto",padding:"4px 0"}}>
+    {learnings.map(function(l){var dt=(l.created_at||"").slice(0,10);var show=dt!==last;last=dt;return <div key={l.id}>
+      {show&&<div style={{fontSize:10,color:C.mu,padding:"8px 12px 2px",display:"flex",alignItems:"center",gap:5}}><span style={{width:5,height:5,background:C.gd}}/>{dt}</div>}
+      <div style={{padding:"4px 12px 4px 20px",borderLeft:"2px solid "+C.fn,marginLeft:12,display:"flex",alignItems:"flex-start"}}>
+        <div style={{flex:1}}><div style={{fontSize:12,lineHeight:1.5}}>{l.content}</div>
+          <div style={{display:"flex",gap:6,marginTop:3,alignItems:"center",flexWrap:"wrap"}}>
+            {l.source&&<span style={{fontSize:10,color:C.mu}}>{l.source}</span>}
+            {l.tags&&l.tags.map(function(tg){return <span key={tg} style={{fontSize:9,color:C.lt,border:"1px solid "+C.fn,padding:"0 3px"}}>{tg}</span>})}</div></div>
+        <span className="del-btn" onClick={function(){rm(l.id)}}>{t.x}</span>
+      </div></div>})}
+    {!learnings.length&&<div style={{padding:20,textAlign:"center",color:C.pl,fontSize:12}}>{t.nl}</div>}
+    </div>
+  </div>;
 }
 
-function QuickAdd({system,t,lines,refresh}){
-  var [open,setOpen]=useState(false);var [more,setMore]=useState(false);
-  var [tv,setTv]=useState("");var [twl,setTwl]=useState("");
-  var [mf,setMf]=useState({a:"",b:"",c:"",neg:"",active:"",conv:"",notes:""});
-  var [lc,setLc]=useState("");var [ls,setLs]=useState("");
-  var [ic,setIc]=useState("");var [il,setIl]=useState("");
-  async function addTask(){if(!tv.trim())return;await insertRow("tasks",{title:tv.trim(),work_line_id:twl||null,category:system==="work"?"work":system==="lux"?"lux":"self",status:"todo",priority:"medium"});setTv("");setTwl("");refresh()}
-  async function saveMetrics(){var r={date:td(),new_guanchayuan:parseInt(mf.a)||0,new_chapin:parseInt(mf.b)||0,curated_chapin:parseInt(mf.c)||0};if(more){r.new_negative=parseInt(mf.neg)||0;r.active_guanchayuan=parseInt(mf.active)||0;r.conversion_rate=parseFloat(mf.conv)||null;r.notes=mf.notes||null}await upsertRow("daily_metrics",r,"date");setMf({a:"",b:"",c:"",neg:"",active:"",conv:"",notes:""});refresh()}
-  async function addLearn(){if(!lc.trim())return;await insertRow("learnings",{content:lc.trim(),source:ls.trim()||null,category:"self"});setLc("");setLs("");refresh()}
-  async function addIdea(){if(!ic.trim())return;await insertRow("ideas",{content:ic.trim(),line_id:il||null,category:"lux"});setIc("");setIl("");refresh()}
+function QA({sys,t,lines,ref}){
+  var [op,sO]=useState(false);var [mo,sM]=useState(false);
+  var [tv,sT]=useState("");var [tw,sTw]=useState("");
+  var [mf,sMf]=useState({a:"",b:"",c:"",n:"",ac:"",cv:"",no:""});
+  var [lc,sLc]=useState("");var [ls,sLs]=useState("");
+  var [ic,sIc]=useState("");var [il,sIl]=useState("");
+  async function aT(){if(!tv.trim())return;await ins("tasks",{title:tv.trim(),work_line_id:tw||null,category:sys==="work"?"work":sys==="lux"?"lux":"self",status:"todo",priority:"medium"});sT("");sTw("");ref()}
+  async function sMe(){var r={date:td(),new_guanchayuan:parseInt(mf.a)||0,new_chapin:parseInt(mf.b)||0,curated_chapin:parseInt(mf.c)||0};if(mo){r.new_negative=parseInt(mf.n)||0;r.active_guanchayuan=parseInt(mf.ac)||0;r.conversion_rate=parseFloat(mf.cv)||null;r.notes=mf.no||null}await ups("daily_metrics",r,"date");sMf({a:"",b:"",c:"",n:"",ac:"",cv:"",no:""});ref()}
+  async function aL(){if(!lc.trim())return;await ins("learnings",{content:lc.trim(),source:ls.trim()||null,category:"self"});sLc("");sLs("");ref()}
+  async function aI(){if(!ic.trim())return;await ins("ideas",{content:ic.trim(),line_id:il||null,category:"lux"});sIc("");sIl("");ref()}
   function ent(fn){return function(e){if(e.key==="Enter")fn()}}
-  if(!open)return <div onClick={function(){setOpen(true)}} style={{position:"fixed",bottom:0,left:0,right:0,background:CL.primary,color:CL.wash,padding:"10px 24px",fontSize:12,cursor:"pointer",textAlign:"center",letterSpacing:3,boxShadow:"0 -2px 0 "+CL.dark,zIndex:50}}>+ QUICK ADD</div>;
-  return <div style={{position:"fixed",bottom:0,left:0,right:0,background:CL.card,border:"2px solid "+CL.primary,borderBottom:"none",padding:"12px 24px",boxShadow:"0 -4px 8px rgba(26,45,92,.08)",zIndex:50}}>
-    <div style={{maxWidth:1100,margin:"0 auto",display:"flex",gap:16,alignItems:"flex-end",flexWrap:"wrap"}}>
-      {system==="work"&&<React.Fragment>
-        <div style={{flex:1,minWidth:220}}>
-          <div style={{...S.label,marginBottom:4}}>{t.metrics}</div>
+  if(!op)return <div onClick={function(){sO(true)}} style={{position:"fixed",bottom:0,left:0,right:0,background:C.p,color:C.ws,padding:"8px",fontSize:12,cursor:"pointer",textAlign:"center",letterSpacing:3,boxShadow:"0 -2px 0 "+C.dk,zIndex:50}}>+ QUICK ADD</div>;
+  return <div style={{position:"fixed",bottom:0,left:0,right:0,background:C.cd,border:"2px solid "+C.p,borderBottom:"none",padding:"10px 20px 10px 90px",boxShadow:"0 -4px 8px rgba(26,45,92,.08)",zIndex:50}}>
+    <div style={{display:"flex",gap:14,alignItems:"flex-end",flexWrap:"wrap"}}>
+      {sys==="work"&&<React.Fragment>
+        <div style={{flex:1,minWidth:200}}>
+          <div style={{...S.lb,marginBottom:3}}>{t.mt}</div>
           <div style={{display:"flex",gap:6}}>
-            <div style={{flex:1}}><div style={{fontSize:9,color:CL.muted,marginBottom:2}}>{t.observers}</div><input type="number" value={mf.a} onChange={function(e){setMf(Object.assign({},mf,{a:e.target.value}))}} onKeyDown={ent(saveMetrics)} style={{...S.input,fontSize:12}}/></div>
-            <div style={{flex:1}}><div style={{fontSize:9,color:CL.muted,marginBottom:2}}>{t.reviews}</div><input type="number" value={mf.b} onChange={function(e){setMf(Object.assign({},mf,{b:e.target.value}))}} onKeyDown={ent(saveMetrics)} style={{...S.input,fontSize:12}}/></div>
-            <div style={{flex:1}}><div style={{fontSize:9,color:CL.gold,marginBottom:2}}>{t.curated}</div><input type="number" value={mf.c} onChange={function(e){setMf(Object.assign({},mf,{c:e.target.value}))}} onKeyDown={ent(saveMetrics)} style={{...S.input,fontSize:12,color:CL.gold}}/></div>
-            <span onClick={saveMetrics} style={{...S.btnDk,alignSelf:"flex-end",padding:"5px 10px"}}>{t.save}</span>
+            <div style={{flex:1}}><div style={{fontSize:9,color:C.mu,marginBottom:1}}>{t.ob}</div><input type="number" value={mf.a} onChange={function(e){sMf(Object.assign({},mf,{a:e.target.value}))}} onKeyDown={ent(sMe)} style={{...S.input,fontSize:11,padding:"4px 6px"}}/></div>
+            <div style={{flex:1}}><div style={{fontSize:9,color:C.mu,marginBottom:1}}>{t.rv}</div><input type="number" value={mf.b} onChange={function(e){sMf(Object.assign({},mf,{b:e.target.value}))}} onKeyDown={ent(sMe)} style={{...S.input,fontSize:11,padding:"4px 6px"}}/></div>
+            <div style={{flex:1}}><div style={{fontSize:9,color:C.gd,marginBottom:1}}>{t.cu}</div><input type="number" value={mf.c} onChange={function(e){sMf(Object.assign({},mf,{c:e.target.value}))}} onKeyDown={ent(sMe)} style={{...S.input,fontSize:11,padding:"4px 6px",color:C.gd}}/></div>
+            <span onClick={sMe} style={{...S.btnDk,alignSelf:"flex-end",padding:"4px 8px",fontSize:11}}>{t.sv}</span>
           </div>
-          {more&&<div style={{display:"flex",gap:6,marginTop:6}}>
-            <div style={{flex:1}}><div style={{fontSize:9,color:CL.muted,marginBottom:2}}>{t.negative}</div><input type="number" value={mf.neg} onChange={function(e){setMf(Object.assign({},mf,{neg:e.target.value}))}} style={{...S.input,fontSize:12}}/></div>
-            <div style={{flex:1}}><div style={{fontSize:9,color:CL.muted,marginBottom:2}}>{t.active}</div><input type="number" value={mf.active} onChange={function(e){setMf(Object.assign({},mf,{active:e.target.value}))}} style={{...S.input,fontSize:12}}/></div>
-            <div style={{flex:1}}><div style={{fontSize:9,color:CL.muted,marginBottom:2}}>{t.convRate}</div><input type="number" step="0.1" value={mf.conv} onChange={function(e){setMf(Object.assign({},mf,{conv:e.target.value}))}} style={{...S.input,fontSize:12}}/></div>
-            <div style={{flex:2}}><div style={{fontSize:9,color:CL.muted,marginBottom:2}}>{t.notes}</div><input value={mf.notes} onChange={function(e){setMf(Object.assign({},mf,{notes:e.target.value}))}} style={{...S.input,fontSize:12}}/></div>
+          {mo&&<div style={{display:"flex",gap:6,marginTop:4}}>
+            <div style={{flex:1}}><div style={{fontSize:9,color:C.mu,marginBottom:1}}>{t.ng}</div><input type="number" value={mf.n} onChange={function(e){sMf(Object.assign({},mf,{n:e.target.value}))}} style={{...S.input,fontSize:11,padding:"4px 6px"}}/></div>
+            <div style={{flex:1}}><div style={{fontSize:9,color:C.mu,marginBottom:1}}>{t.ac}</div><input type="number" value={mf.ac} onChange={function(e){sMf(Object.assign({},mf,{ac:e.target.value}))}} style={{...S.input,fontSize:11,padding:"4px 6px"}}/></div>
+            <div style={{flex:1}}><div style={{fontSize:9,color:C.mu,marginBottom:1}}>{t.cr}</div><input type="number" step="0.1" value={mf.cv} onChange={function(e){sMf(Object.assign({},mf,{cv:e.target.value}))}} style={{...S.input,fontSize:11,padding:"4px 6px"}}/></div>
+            <div style={{flex:2}}><div style={{fontSize:9,color:C.mu,marginBottom:1}}>{t.no}</div><input value={mf.no} onChange={function(e){sMf(Object.assign({},mf,{no:e.target.value}))}} style={{...S.input,fontSize:11,padding:"4px 6px"}}/></div>
           </div>}
-          <span style={{fontSize:10,color:CL.pale,cursor:"pointer",marginTop:4,display:"inline-block"}} onClick={function(){setMore(!more)}}>{more?t.less:t.more}</span>
-        </div><div style={{width:1,height:36,background:CL.faint}}/>
+          <span style={{fontSize:9,color:C.pl,cursor:"pointer",marginTop:2,display:"inline-block"}} onClick={function(){sM(!mo)}}>{mo?t.le:t.mo}</span>
+        </div><div style={{width:1,height:30,background:C.fn}}/>
       </React.Fragment>}
-      {system==="iris"&&<React.Fragment>
-        <div style={{flex:1,minWidth:220}}>
-          <div style={{...S.label,marginBottom:4}}>{t.learn}</div>
+      {sys==="iris"&&<React.Fragment>
+        <div style={{flex:1,minWidth:200}}>
+          <div style={{...S.lb,marginBottom:3}}>{t.ln}</div>
           <div style={{display:"flex",gap:6}}>
-            <input value={lc} onChange={function(e){setLc(e.target.value)}} placeholder="今天理解了什么..." onKeyDown={ent(addLearn)} style={{...S.input,flex:2,fontSize:12}}/>
-            <input value={ls} onChange={function(e){setLs(e.target.value)}} placeholder={t.source} onKeyDown={ent(addLearn)} style={{...S.input,flex:1,fontSize:11}}/>
-            <span onClick={addLearn} style={S.btnDk}>{t.addLearn}</span>
+            <input value={lc} onChange={function(e){sLc(e.target.value)}} placeholder={"\u4eca\u5929\u7406\u89e3\u4e86\u4ec0\u4e48..."} onKeyDown={ent(aL)} style={{...S.input,flex:2,fontSize:11,padding:"4px 6px"}}/>
+            <input value={ls} onChange={function(e){sLs(e.target.value)}} placeholder={t.sc} onKeyDown={ent(aL)} style={{...S.input,flex:1,fontSize:10,padding:"4px 6px"}}/>
+            <span onClick={aL} style={{...S.btnDk,fontSize:11,padding:"4px 8px"}}>{t.al}</span>
           </div>
-        </div><div style={{width:1,height:36,background:CL.faint}}/>
+        </div><div style={{width:1,height:30,background:C.fn}}/>
       </React.Fragment>}
-      {system==="lux"&&<React.Fragment>
-        <div style={{flex:1,minWidth:220}}>
-          <div style={{...S.label,marginBottom:4}}>{t.ideaLabel}</div>
+      {sys==="lux"&&<React.Fragment>
+        <div style={{flex:1,minWidth:200}}>
+          <div style={{...S.lb,marginBottom:3}}>{t.il}</div>
           <div style={{display:"flex",gap:6}}>
-            <input value={ic} onChange={function(e){setIc(e.target.value)}} placeholder={t.ideaPh} onKeyDown={ent(addIdea)} style={{...S.input,flex:2,fontSize:12}}/>
-            <select value={il} onChange={function(e){setIl(e.target.value)}} style={{...S.input,width:100,fontSize:11}}><option value="">项目</option>{lines.filter(function(l){return l.status!=="done"}).map(function(l){return <option key={l.id} value={l.id}>{l.name}</option>})}</select>
-            <span onClick={addIdea} style={S.btnDk}>{t.addIdea}</span>
+            <input value={ic} onChange={function(e){sIc(e.target.value)}} placeholder={t.ip2} onKeyDown={ent(aI)} style={{...S.input,flex:2,fontSize:11,padding:"4px 6px"}}/>
+            <select value={il} onChange={function(e){sIl(e.target.value)}} style={{...S.input,width:90,fontSize:10,padding:"4px 6px"}}><option value="">{"\u9879\u76ee"}</option>{lines.filter(function(l){return l.status!=="done"}).map(function(l){return <option key={l.id} value={l.id}>{l.name}</option>})}</select>
+            <span onClick={aI} style={{...S.btnDk,fontSize:11,padding:"4px 8px"}}>{t.ai}</span>
           </div>
-        </div><div style={{width:1,height:36,background:CL.faint}}/>
+        </div><div style={{width:1,height:30,background:C.fn}}/>
       </React.Fragment>}
-      <div style={{flex:1,minWidth:220}}>
-        <div style={{...S.label,marginBottom:4}}>{t.tasks}</div>
+      <div style={{flex:1,minWidth:200}}>
+        <div style={{...S.lb,marginBottom:3}}>{t.tk}</div>
         <div style={{display:"flex",gap:6}}>
-          <input placeholder={t.newTask} value={tv} onChange={function(e){setTv(e.target.value)}} onKeyDown={ent(addTask)} style={{...S.input,flex:1,fontSize:12}}/>
-          <select value={twl} onChange={function(e){setTwl(e.target.value)}} style={{...S.input,width:90,fontSize:11}}><option value="">—</option>{lines.map(function(w){return <option key={w.id} value={w.id}>{w.name}</option>})}</select>
-          <span onClick={addTask} style={S.btnDk}>+</span>
+          <input placeholder={t.nt2} value={tv} onChange={function(e){sT(e.target.value)}} onKeyDown={ent(aT)} style={{...S.input,flex:1,fontSize:11,padding:"4px 6px"}}/>
+          <select value={tw} onChange={function(e){sTw(e.target.value)}} style={{...S.input,width:80,fontSize:10,padding:"4px 6px"}}><option value="">{"\u2014"}</option>{lines.map(function(w){return <option key={w.id} value={w.id}>{w.name}</option>})}</select>
+          <span onClick={aT} style={{...S.btnDk,fontSize:11,padding:"4px 8px"}}>+</span>
         </div>
       </div>
-      <span style={{...S.btnSm,alignSelf:"flex-end"}} onClick={function(){setOpen(false)}}>×</span>
+      <span style={{...S.btnSm,alignSelf:"flex-end",fontSize:10}} onClick={function(){sO(false)}}>{"\u00d7"}</span>
     </div>
   </div>;
 }
 
 function App(){
-  var [connected,setConnected]=useState(false);var [system,setSystem]=useState("work");var [page,setPage]=useState("overview");
-  var [lang,setLang]=useState("zh");var [loading,setLoading]=useState(true);
-  var [lines,setLines]=useState([]);var [tasks,setTasks]=useState([]);var [metrics,setMetrics]=useState([]);
-  var [contextItems,setContextItems]=useState([]);var [decisions,setDecisions]=useState([]);
-  var [learnings,setLearnings]=useState([]);var [ideas,setIdeas]=useState([]);
+  var [cn,sCn]=useState(false);var [sys,sSys]=useState("work");var [pg,sPg]=useState("ov");
+  var [lang,sLang]=useState("zh");var [ld,sLd]=useState(true);
+  var [lines,sLn]=useState([]);var [tasks,sTk]=useState([]);var [metrics,sMt]=useState([]);
+  var [ctx,sCx]=useState([]);var [dec,sDc]=useState([]);var [learn,sLr]=useState([]);var [ideas,sId]=useState([]);
   var t=TX[lang];
-  var refresh=useCallback(async function(){
-    var [ln,tk,mt,ci,dc,lr,id]=await Promise.all([fetchAll("lines","order_index",true),fetchAll("tasks","created_at",false),fetchAll("daily_metrics","date",true),fetchAll("context_items","created_at",false),fetchAll("decisions","made_at",false),fetchAll("learnings","created_at",false),fetchAll("ideas","created_at",false)]);
-    setLines(ln);setTasks(tk);setMetrics(mt);setContextItems(ci);setDecisions(dc);setLearnings(lr);setIdeas(id);setLoading(false);
+  var ref=useCallback(async function(){
+    var [a,b,c,d,e,f,g]=await Promise.all([fa("lines","order_index",true),fa("tasks","created_at",false),fa("daily_metrics","date",true),fa("context_items","created_at",false),fa("decisions","made_at",false),fa("learnings","created_at",false),fa("ideas","created_at",false)]);
+    sLn(a);sTk(b);sMt(c);sCx(d);sDc(e);sLr(f);sId(g);sLd(false);
   },[]);
-  useEffect(function(){var h=getHash();if(h&&h.url&&h.key){initSB(h.url,h.key);setConnected(true);refresh()}else setLoading(false)},[]);
-  async function cycleTask(id,cur){var next=cur==="todo"?"in_progress":cur==="in_progress"?"done":"todo";var u={status:next};if(next==="done")u.completed_at=new Date().toISOString();else u.completed_at=null;await updateRow("tasks",id,u);refresh()}
-  async function delTask(id){await deleteRow("tasks",id);refresh()}
-  async function editTask(id,u){await updateRow("tasks",id,u);refresh()}
-  async function editLine(id,u){await updateRow("lines",id,u);refresh()}
-  async function adoptIdea(id){await updateRow("ideas",id,{status:"adopted"});refresh()}
-  async function dropIdea(id){await updateRow("ideas",id,{status:"dropped"});refresh()}
-  async function delIdea(id){await deleteRow("ideas",id);refresh()}
-  async function delLearn(id){await deleteRow("learnings",id);refresh()}
-  async function addLine(cat){var name=prompt("Name:");if(!name)return;await insertRow("lines",{id:name.toLowerCase().replace(/\s+/g,"-"),name:name,category:cat,status:cat==="lux"?"active":"on_track",order_index:lines.length+1});refresh()}
-  function disconnect(){window.location.hash="";window.location.reload()}
-  var cl=lines.filter(function(l){return system==="work"?l.category==="work":system==="lux"?l.category==="lux":l.category==="self"});
-  var ct=tasks.filter(function(t2){return system==="work"?t2.category==="work":system==="lux"?t2.category==="lux":t2.category==="self"});
-  var cx=contextItems.filter(function(c){return c.category==="work"||!c.category});
-  var cd=decisions.filter(function(d){return d.category==="work"||!d.category});
-  if(!connected&&!loading)return <ConnectScreen onConnect={function(){setConnected(true);refresh()}} t={t}/>;
-  if(loading)return <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}}><span style={{color:CL.pale,letterSpacing:3}}>{t.loading}</span></div>;
-  return <div>
-    <SysTabs system={system} setSystem={setSystem} setPage={setPage}/>
-    <div style={{maxWidth:1100,margin:"0 auto",padding:"14px 24px 60px",marginLeft:90}}>
-      <Nav page={page} setPage={setPage} lang={lang} setLang={setLang} t={t} system={system} onDisconnect={disconnect}/>
-      {system==="work"&&<React.Fragment>
-        {page==="overview"&&<WorkOverview lines={cl} tasks={ct} t={t} onCycle={cycleTask} onDel={delTask} onEditTask={editTask} onEditLine={editLine}/>}
-        {page==="tasks"&&<TasksList tasks={ct} lines={cl} t={t} onCycle={cycleTask} onDel={delTask} onEdit={editTask}/>}
-        {page==="metrics"&&<WorkMetrics metrics={metrics} t={t}/>}
-        {page==="context"&&<WorkContext contextItems={cx} decisions={cd} t={t}/>}
-      </React.Fragment>}
-      {system==="lux"&&<React.Fragment>
-        {page==="overview"&&<LuxOverview lines={cl} t={t} onEditLine={editLine} onAddLine={function(){addLine("lux")}}/>}
-        {page==="tasks"&&<TasksList tasks={ct} lines={cl} t={t} onCycle={cycleTask} onDel={delTask} onEdit={editTask}/>}
-        {page==="ideas"&&<LuxIdeas ideas={ideas} linesAll={cl} t={t} onAdopt={adoptIdea} onDrop={dropIdea} onDel={delIdea}/>}
-      </React.Fragment>}
-      {system==="iris"&&<React.Fragment>
-        {page==="overview"&&<IrisOverview lines={cl} learnings={learnings} t={t} onEditLine={editLine} onAddLine={function(){addLine("self")}}/>}
-        {page==="tasks"&&<TasksList tasks={ct} lines={cl} t={t} onCycle={cycleTask} onDel={delTask} onEdit={editTask}/>}
-        {page==="learn"&&<LearnPage learnings={learnings} t={t} onDel={delLearn}/>}
-      </React.Fragment>}
-      <div style={{textAlign:"center",padding:"12px 0"}}><span style={{fontSize:10,letterSpacing:3,color:CL.muted}}>{t.footer}</span></div>
+  useEffect(function(){var h=getH();if(h&&h.url&&h.key){initSB(h.url,h.key);sCn(true);ref()}else sLd(false)},[]);
+  async function cyc(id,cur){var nx=cur==="todo"?"in_progress":cur==="in_progress"?"done":"todo";var u={status:nx};if(nx==="done")u.completed_at=new Date().toISOString();else u.completed_at=null;await upd("tasks",id,u);ref()}
+  async function rmT(id){await del("tasks",id);ref()}
+  async function edT(id,u){await upd("tasks",id,u);ref()}
+  async function edL(id,u){await upd("lines",id,u);ref()}
+  async function adpI(id){await upd("ideas",id,{status:"adopted"});ref()}
+  async function drpI(id){await upd("ideas",id,{status:"dropped"});ref()}
+  async function rmI(id){await del("ideas",id);ref()}
+  async function rmLr(id){await del("learnings",id);ref()}
+  async function addLn(cat){var n=prompt("Name:");if(!n)return;await ins("lines",{id:n.toLowerCase().replace(/\s+/g,"-"),name:n,category:cat,status:cat==="lux"?"active":"on_track",order_index:lines.length+1});ref()}
+  function disc(){window.location.hash="";window.location.reload()}
+  var cl=lines.filter(function(l){return sys==="work"?l.category==="work":sys==="lux"?l.category==="lux":l.category==="self"});
+  var ct=tasks.filter(function(x){return sys==="work"?x.category==="work":sys==="lux"?x.category==="lux":x.category==="self"});
+  if(!cn&&!ld)return <ConnectScreen onConnect={function(){sCn(true);ref()}} t={t}/>;
+  if(ld)return <div style={{height:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}}><span style={{color:C.pl,letterSpacing:3}}>{t.ld}</span></div>;
+  return <div style={{display:"flex",flexDirection:"column",height:"100vh"}}>
+    <SysTabs sys={sys} setSys={sSys} setP={sPg}/>
+    <div style={{display:"flex",flexDirection:"column",flex:1,padding:"10px 20px 40px",marginLeft:80,overflow:"hidden"}}>
+      <Nav pg={pg} setP={sPg} lang={lang} setLang={sLang} t={t} sys={sys} disc={disc}/>
+      <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",marginTop:8}}>
+        {sys==="work"&&<React.Fragment>
+          {pg==="ov"&&<WOv lines={cl} tasks={ct} t={t} cyc={cyc} rm={rmT} edT={edT} edL={edL}/>}
+          {pg==="tk"&&<TList tasks={ct} lines={cl} t={t} cyc={cyc} rm={rmT} ed={edT}/>}
+          {pg==="mt"&&<WMt metrics={metrics} t={t}/>}
+          {pg==="cx"&&<WCx ctx={ctx.filter(function(c){return c.category==="work"||!c.category})} dec={dec.filter(function(d){return d.category==="work"||!d.category})} t={t}/>}
+        </React.Fragment>}
+        {sys==="lux"&&<React.Fragment>
+          {pg==="ov"&&<LOv lines={cl} t={t} edL={edL} addL={function(){addLn("lux")}}/>}
+          {pg==="tk"&&<TList tasks={ct} lines={cl} t={t} cyc={cyc} rm={rmT} ed={edT}/>}
+          {pg==="id"&&<LId ideas={ideas} lns={cl} t={t} adp={adpI} drp={drpI} rm={rmI}/>}
+        </React.Fragment>}
+        {sys==="iris"&&<React.Fragment>
+          {pg==="ov"&&<IOv lines={cl} learnings={learn} t={t} edL={edL} addL={function(){addLn("self")}}/>}
+          {pg==="tk"&&<TList tasks={ct} lines={cl} t={t} cyc={cyc} rm={rmT} ed={edT}/>}
+          {pg==="ln"&&<ILn learnings={learn} t={t} rm={rmLr}/>}
+        </React.Fragment>}
+      </div>
     </div>
-    <QuickAdd system={system} t={t} lines={cl} refresh={refresh}/>
+    <QA sys={sys} t={t} lines={cl} ref={ref}/>
   </div>;
 }
 ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
