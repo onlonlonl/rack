@@ -11,11 +11,13 @@ body{font-family:'DotGothic16',monospace;background:#f0f0f0;overflow-x:hidden}
 input,textarea,button,select{font-family:'DotGothic16',monospace;-webkit-appearance:none;border-radius:0}
 #root{min-height:100vh;background:#f0f0f0;background-image:radial-gradient(circle,#d8d8d8 1px,transparent 1px);background-size:16px 16px}
 @keyframes pulse{0%,100%{opacity:.7;transform:scale(1)}50%{opacity:1;transform:scale(1.15)}}
-@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-.fade-in{animation:fadeIn .2s ease}
 .sys-tabs{position:fixed;left:12px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:0;z-index:60;border:2px solid #2b4280;box-shadow:3px 3px 0 #c7d2ea}
 .sys-tab{padding:10px 10px;font-size:12px;letter-spacing:2px;cursor:pointer;text-align:center;border-bottom:1px solid #c7d2ea;min-width:56px}
 .sys-tab:last-child{border-bottom:none}
+.del-btn{opacity:0;transition:opacity .15s;cursor:pointer;font-size:11px;color:#c7d2ea;padding:0 4px}
+.del-btn:hover{color:#c45555}
+*:hover>.del-btn{opacity:1}
+.edit-input{border:none;border-bottom:2px solid #2b4280;background:transparent;font-family:inherit;outline:none;color:#222;width:100%}
 </style>
 </head>
 <body>
@@ -25,23 +27,22 @@ input,textarea,button,select{font-family:'DotGothic16',monospace;-webkit-appeara
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <script type="text/babel">
-const {useState,useEffect,useCallback,useMemo}=React;
-const CL={primary:"#2b4280",dark:"#1a2d5c",mid:"#3b56a0",light:"#5571b8",pale:"#8a9fd4",faint:"#c7d2ea",wash:"#e8edf6",bg:"#f0f0f0",card:"#fafafa",text:"#222",muted:"#999",border:"#ccc",shadow:"#c7d2ea",gold:"#d4a03c",goldLight:"#e0c068",goldDark:"#9a7520"};
+const {useState,useEffect,useCallback}=React;
+const CL={primary:"#2b4280",dark:"#1a2d5c",light:"#5571b8",pale:"#8a9fd4",faint:"#c7d2ea",wash:"#e8edf6",card:"#fafafa",text:"#222",muted:"#999",border:"#ccc",shadow:"#c7d2ea",gold:"#d4a03c",goldLight:"#e0c068"};
 const S={
   card:{background:CL.card,border:"2px solid "+CL.primary,boxShadow:"3px 3px 0 "+CL.shadow},
   cardDim:{background:CL.card,border:"2px solid "+CL.border,boxShadow:"2px 2px 0 #e0e0e0"},
-  btn:{padding:"6px 14px",border:"2px solid "+CL.primary,background:CL.card,color:CL.primary,fontSize:12,letterSpacing:1,cursor:"pointer",boxShadow:"2px 2px 0 "+CL.border,fontFamily:"inherit"},
-  btnDk:{padding:"6px 14px",border:"2px solid "+CL.primary,background:CL.primary,color:CL.wash,fontSize:12,letterSpacing:1,cursor:"pointer",boxShadow:"2px 2px 0 "+CL.pale,fontFamily:"inherit"},
-  btnSm:{padding:"4px 10px",border:"2px solid "+CL.primary,background:CL.card,color:CL.primary,fontSize:11,cursor:"pointer",fontFamily:"inherit"},
-  input:{width:"100%",padding:"8px 10px",border:"2px solid "+CL.primary,background:CL.card,fontFamily:"inherit",fontSize:14,color:CL.primary,outline:"none",boxSizing:"border-box"},
-  label:{fontSize:12,color:CL.muted,letterSpacing:1},
-  secTitle:{fontSize:12,letterSpacing:2,color:CL.pale,marginBottom:6,paddingBottom:4,borderBottom:"2px dashed "+CL.faint}
+  btn:{padding:"5px 12px",border:"2px solid "+CL.primary,background:CL.card,color:CL.primary,fontSize:12,letterSpacing:1,cursor:"pointer",boxShadow:"2px 2px 0 "+CL.border,fontFamily:"inherit"},
+  btnDk:{padding:"5px 12px",border:"2px solid "+CL.primary,background:CL.primary,color:CL.wash,fontSize:12,letterSpacing:1,cursor:"pointer",boxShadow:"2px 2px 0 "+CL.pale,fontFamily:"inherit"},
+  btnSm:{padding:"3px 8px",border:"2px solid "+CL.primary,background:CL.card,color:CL.primary,fontSize:11,cursor:"pointer",fontFamily:"inherit"},
+  input:{width:"100%",padding:"6px 8px",border:"2px solid "+CL.primary,background:CL.card,fontFamily:"inherit",fontSize:13,color:CL.primary,outline:"none",boxSizing:"border-box"},
+  label:{fontSize:11,color:CL.muted,letterSpacing:1},
+  secTitle:{fontSize:11,letterSpacing:2,color:CL.pale,marginBottom:6,paddingBottom:4,borderBottom:"2px dashed "+CL.faint}
 };
 const TX={
-  en:{overview:"OVERVIEW",tasks:"TASKS",metrics:"METRICS",context:"CONTEXT",learn:"LEARN",ideas:"IDEAS",high:"HIGH",med:"MED",low:"LOW",pending:"PENDING",done:"DONE",noTasks:"no tasks",recentTasks:"RECENT TASKS",progress:"PROGRESS",decisions:"DECISIONS",footer:"RACK · Built with # by Iris & Claude",save:"SAVE",more:"\u25bc more",less:"\u25b2 less",quickAdd:"+ QUICK ADD",newTask:"+ new task...",observers:"OBSERVERS",reviews:"REVIEWS",curated:"CURATED",negative:"NEGATIVE",active:"ACTIVE",convRate:"CONV %",notes:"NOTES",onTrack:"ON TRACK",atRisk:"AT RISK",blocked:"BLOCKED",direction:"DIRECTION",current:"NOW",nextStep:"NEXT",recentLearn:"RECENT LEARNINGS",noLearn:"nothing yet",addLearn:"ADD",source:"source",addIdea:"ADD",ideaPh:"new idea...",noIdeas:"no ideas yet",projects:"PROJECTS",completed:"COMPLETED",processed:"PROCESSED",adopt:"adopt",drop:"drop",ideaLabel:"IDEA",loading:"loading...",connect:"CONNECT",urlPh:"Supabase URL",keyPh:"Anon Key",connectBtn:"CONNECT",connectErr:"connection failed",noData:"no data yet"},
-  zh:{overview:"\u603b\u89c8",tasks:"\u4efb\u52a1",metrics:"\u6570\u636e",context:"\u4e0a\u4e0b\u6587",learn:"\u5b66\u4e60",ideas:"\u60f3\u6cd5",high:"\u9ad8",med:"\u4e2d",low:"\u4f4e",pending:"\u5f85\u529e",done:"\u5df2\u5b8c\u6210",noTasks:"\u6ca1\u6709\u4efb\u52a1",recentTasks:"\u8fd1\u671f\u4efb\u52a1",progress:"\u8fdb\u5c55",decisions:"\u5df2\u505a\u51b3\u7b56",footer:"RACK \u00b7 Built with # by Iris & Claude",save:"\u4fdd\u5b58",more:"\u25bc \u66f4\u591a",less:"\u25b2 \u6536\u8d77",quickAdd:"+ QUICK ADD",newTask:"+ \u65b0\u4efb\u52a1...",observers:"\u65b0\u589e\u89c2\u7315\u5458",reviews:"\u7315\u8bc4",curated:"\u7cbe\u9009",negative:"\u5dee\u8bc4",active:"\u6d3b\u8dc3",convRate:"\u8f6c\u5316\u7387 %",notes:"\u5907\u6ce8",onTrack:"\u6b63\u5e38",atRisk:"\u6ce8\u610f",blocked:"\u963b\u585e",direction:"\u65b9\u5411",current:"\u73b0\u5728",nextStep:"\u4e0b\u4e00\u6b65",recentLearn:"\u6700\u8fd1\u5b66\u5230\u7684",noLearn:"\u8fd8\u6ca1\u6709\u8bb0\u5f55",addLearn:"\u6dfb\u52a0",source:"\u6765\u6e90",addIdea:"\u6dfb\u52a0",ideaPh:"\u65b0\u60f3\u6cd5...",noIdeas:"\u8fd8\u6ca1\u6709\u60f3\u6cd5",projects:"\u9879\u76ee",completed:"\u5df2\u5b8c\u6210",processed:"\u5df2\u5904\u7406",adopt:"\u91c7\u7eb3",drop:"\u653e\u5f03",ideaLabel:"\u60f3\u6cd5",loading:"\u52a0\u8f7d\u4e2d...",connect:"\u8fde\u63a5",urlPh:"Supabase URL",keyPh:"Anon Key",connectBtn:"\u8fde\u63a5",connectErr:"\u8fde\u63a5\u5931\u8d25",noData:"\u8fd8\u6ca1\u6709\u6570\u636e"}
+  en:{overview:"OVERVIEW",tasks:"TASKS",metrics:"METRICS",context:"CONTEXT",learn:"LEARN",ideas:"IDEAS",high:"H",med:"M",low:"L",pending:"PENDING",inProg:"PROGRESS",done:"DONE",noTasks:"no tasks",recentTasks:"RECENT TASKS",progress:"PROGRESS",decisions:"DECISIONS",footer:"RACK · Built with # by Iris & Claude",save:"SAVE",more:"▼ more",less:"▲ less",quickAdd:"+ QUICK ADD",newTask:"+ new task...",observers:"OBSERVERS",reviews:"REVIEWS",curated:"CURATED",negative:"NEGATIVE",active:"ACTIVE",convRate:"CONV %",notes:"NOTES",onTrack:"OK",atRisk:"RISK",blocked:"BLOCK",direction:"DIRECTION",current:"NOW",nextStep:"NEXT",recentLearn:"RECENT LEARNINGS",noLearn:"nothing yet",addLearn:"ADD",source:"source",addIdea:"ADD",ideaPh:"new idea...",noIdeas:"no ideas yet",projects:"PROJECTS",completed:"COMPLETED",processed:"PROCESSED",adopt:"adopt",drop:"drop",ideaLabel:"IDEA",loading:"loading...",connect:"CONNECT",urlPh:"Supabase URL",keyPh:"Anon Key",connectBtn:"CONNECT",connectErr:"connection failed",noData:"no data",newLine:"+ LINE",del:"×",edit:"edit",cancel:"cancel",hi:"HIGH"},
+  zh:{overview:"总览",tasks:"任务",metrics:"数据",context:"上下文",learn:"学习",ideas:"想法",high:"高",med:"中",low:"低",pending:"待办",inProg:"进行中",done:"已完成",noTasks:"没有任务",recentTasks:"近期任务",progress:"进展",decisions:"决策",footer:"RACK · Built with # by Iris & Claude",save:"保存",more:"▼ 更多",less:"▲ 收起",quickAdd:"+ QUICK ADD",newTask:"+ 新任务...",observers:"观猹员",reviews:"猹评",curated:"精选",negative:"差评",active:"活跃",convRate:"转化率%",notes:"备注",onTrack:"正常",atRisk:"注意",blocked:"阻塞",direction:"方向",current:"现在",nextStep:"下一步",recentLearn:"最近学到的",noLearn:"还没有记录",addLearn:"添加",source:"来源",addIdea:"添加",ideaPh:"新想法...",noIdeas:"还没有想法",projects:"项目",completed:"已完成",processed:"已处理",adopt:"采纳",drop:"放弃",ideaLabel:"想法",loading:"加载中...",connect:"连接",urlPh:"Supabase URL",keyPh:"Anon Key",connectBtn:"连接",connectErr:"连接失败",noData:"暂无数据",newLine:"+ 线路",del:"×",edit:"编辑",cancel:"取消",hi:"高"}
 };
-
 var sb=null;
 function initSB(u,k){sb=supabase.createClient(u,k)}
 async function fetchAll(t,o,a){if(!sb)return[];try{var q=sb.from(t).select("*");if(o)q=q.order(o,{ascending:a!==false});var r=await q;return r.error?[]:r.data||[]}catch(e){return[]}}
@@ -49,117 +50,120 @@ async function insertRow(t,r){if(!sb)return null;try{var res=await sb.from(t).in
 async function updateRow(t,id,u){if(!sb)return null;try{var res=await sb.from(t).update(u).eq("id",id).select();return res.error?null:(res.data||[])[0]||null}catch(e){return null}}
 async function deleteRow(t,id){if(!sb)return false;try{var res=await sb.from(t).delete().eq("id",id);return!res.error}catch(e){return false}}
 async function upsertRow(t,r,c){if(!sb)return null;try{var res=await sb.from(t).upsert(r,c?{onConflict:c}:{}).select();return res.error?null:(res.data||[])[0]||null}catch(e){return null}}
-function today(){return new Date().toISOString().slice(0,10)}
-function fmtDate(d){return d?d.slice(5).replace("-","/"):""}
-
-function getHash(){try{var h=decodeURIComponent(window.location.hash.slice(1));if(!h)return null;return JSON.parse(h)}catch(e){return null}}
+function td(){return new Date().toISOString().slice(0,10)}
+function fd(d){return d?d.slice(5,10).replace("-","/"):""}
+function getHash(){try{var h=decodeURIComponent(window.location.hash.slice(1));return h?JSON.parse(h):null}catch(e){return null}}
 function setHash(o){window.location.hash=encodeURIComponent(JSON.stringify(o))}
-
-var TAG_C={"\u63a8\u8fdb":CL.light,"\u89c2\u5bdf":CL.gold,"\u60f3\u6cd5":CL.pale,push:CL.light,observe:CL.gold,idea:CL.pale};
+var TAG_C={推进:CL.light,观察:CL.gold,想法:CL.pale,push:CL.light,observe:CL.gold,idea:CL.pale,priority:CL.light,blocker:"#c45555",activity:CL.gold,observation:CL.pale};
 var PRI_C={high:CL.dark,medium:CL.gold,low:CL.pale};
-var STAT_C={on_track:CL.light,at_risk:CL.gold,blocked:"#c45555"};
+var STAT_C={on_track:CL.light,at_risk:CL.gold,blocked:"#c45555",active:CL.light};
 
-// ===== CONNECT SCREEN =====
 function ConnectScreen({onConnect,t}){
-  var [url,setUrl]=useState("");
-  var [key,setKey]=useState("");
-  var [err,setErr]=useState("");
-  var [loading,setLoading]=useState(false);
-  async function go(){
-    if(!url||!key)return;
-    setLoading(true);setErr("");
-    try{
-      var u=url.trim().replace(/\/+$/,"");
-      initSB(u,key.trim());
-      var test=await sb.from("work_status").select("id").limit(1);
-      if(test.error)throw new Error(test.error.message);
-      setHash({url:u,key:key.trim()});
-      onConnect();
-    }catch(e){setErr(t.connectErr);sb=null}
-    setLoading(false);
-  }
+  var [url,setUrl]=useState("");var [key,setKey]=useState("");var [err,setErr]=useState("");var [ld,setLd]=useState(false);
+  async function go(){if(!url||!key)return;setLd(true);setErr("");try{initSB(url.trim().replace(/\/+$/,""),key.trim());var test=await sb.from("work_status").select("id").limit(1);if(test.error)throw 0;setHash({url:url.trim().replace(/\/+$/,""),key:key.trim()});onConnect()}catch(e){setErr(t.connectErr);sb=null}setLd(false)}
   return (<div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}}>
-    <div style={{...S.card,padding:32,width:380,textAlign:"center"}}>
-      <div style={{fontSize:20,color:CL.dark,letterSpacing:3,marginBottom:10}}>RACK <span style={{color:CL.gold}}>#</span></div>
-      <input value={url} onChange={function(e){setUrl(e.target.value)}} placeholder={t.urlPh} style={{...S.input,marginBottom:10,fontSize:13}}/>
-      <input value={key} onChange={function(e){setKey(e.target.value)}} placeholder={t.keyPh} type="password" style={{...S.input,marginBottom:6,fontSize:13}}/>
-      {err&&<div style={{color:"#c45555",fontSize:12,marginBottom:6}}>{err}</div>}
-      <span onClick={go} style={{...S.btnDk,width:"100%",display:"block",textAlign:"center",padding:"10px 0"}}>{loading?t.loading:t.connectBtn}</span>
+    <div style={{...S.card,padding:28,width:360,textAlign:"center"}}>
+      <div style={{fontSize:18,color:CL.dark,letterSpacing:3,marginBottom:20}}>RACK <span style={{color:CL.gold}}>#</span></div>
+      <input value={url} onChange={function(e){setUrl(e.target.value)}} placeholder={t.urlPh} style={{...S.input,marginBottom:8}}/>
+      <input value={key} onChange={function(e){setKey(e.target.value)}} placeholder={t.keyPh} type="password" onKeyDown={function(e){if(e.key==="Enter")go()}} style={{...S.input,marginBottom:12}}/>
+      {err&&<div style={{color:"#c45555",fontSize:11,marginBottom:6}}>{err}</div>}
+      <span onClick={go} style={{...S.btnDk,width:"100%",display:"block",textAlign:"center",padding:"8px 0"}}>{ld?t.loading:t.connectBtn}</span>
     </div>
   </div>);
 }
 
-// ===== SHARED =====
 function SysTabs({system,setSystem,setPage}){
-  return (<div className="sys-tabs">
-    {[["work","WORK"],["lux","LUX"],["iris","IRIS"]].map(function(arr){return(
-      <div key={arr[0]} className="sys-tab" onClick={function(){setSystem(arr[0]);setPage("overview")}} style={{background:system===arr[0]?CL.primary:CL.card,color:system===arr[0]?CL.wash:CL.pale}}>{arr[1]}</div>
-    )})}
-  </div>);
+  return (<div className="sys-tabs">{[["work","WORK"],["lux","LUX"],["iris","IRIS"]].map(function(a){return <div key={a[0]} className="sys-tab" onClick={function(){setSystem(a[0]);setPage("overview")}} style={{background:system===a[0]?CL.primary:CL.card,color:system===a[0]?CL.wash:CL.pale}}>{a[1]}</div>})}</div>);
 }
-function Nav({page,setPage,lang,setLang,t,system}){
-  var tabMap={work:[["overview",t.overview],["tasks",t.tasks],["metrics",t.metrics],["context",t.context]],lux:[["overview",t.overview],["tasks",t.tasks],["ideas",t.ideas]],iris:[["overview",t.overview],["tasks",t.tasks],["learn",t.learn]]};
-  return (<div style={{...S.card,padding:"12px 20px",display:"flex",alignItems:"center",gap:14,marginBottom:10,flexWrap:"wrap"}}>
-    <span style={{fontSize:16,color:CL.dark,marginRight:8}}>RACK <span style={{color:CL.gold}}>#</span></span>
-    <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>{(tabMap[system]||[]).map(function(arr){return <span key={arr[0]} style={page===arr[0]?S.btnDk:S.btn} onClick={function(){setPage(arr[0])}}>{arr[1]}</span>})}</div>
-    <div style={{marginLeft:"auto",display:"flex",alignItems:"center",gap:10}}>
-      <div style={{display:"flex",border:"2px solid "+CL.primary}}>{["en","zh"].map(function(l){return <span key={l} onClick={function(){setLang(l)}} style={{fontSize:11,padding:"3px 10px",background:lang===l?CL.primary:CL.card,color:lang===l?CL.wash:CL.primary,cursor:"pointer"}}>{l.toUpperCase()}</span>})}</div>
-      <div style={{width:12,height:12,background:CL.faint,animation:"pulse 2.5s ease-in-out infinite"}}/>
+function Nav({page,setPage,lang,setLang,t,system,onDisconnect}){
+  var tm={work:[["overview",t.overview],["tasks",t.tasks],["metrics",t.metrics],["context",t.context]],lux:[["overview",t.overview],["tasks",t.tasks],["ideas",t.ideas]],iris:[["overview",t.overview],["tasks",t.tasks],["learn",t.learn]]};
+  return (<div style={{...S.card,padding:"8px 16px",display:"flex",alignItems:"center",gap:10,marginBottom:12}}>
+    <span style={{fontSize:15,color:CL.dark,marginRight:6}}>RACK <span style={{color:CL.gold}}>#</span></span>
+    <div style={{display:"flex",gap:3}}>{(tm[system]||[]).map(function(a){return <span key={a[0]} style={page===a[0]?S.btnDk:S.btn} onClick={function(){setPage(a[0])}}>{a[1]}</span>})}</div>
+    <div style={{marginLeft:"auto",display:"flex",alignItems:"center",gap:8}}>
+      <div style={{display:"flex",border:"2px solid "+CL.primary}}>{["en","zh"].map(function(l){return <span key={l} onClick={function(){setLang(l)}} style={{fontSize:10,padding:"2px 8px",background:lang===l?CL.primary:CL.card,color:lang===l?CL.wash:CL.primary,cursor:"pointer"}}>{l.toUpperCase()}</span>})}</div>
+      <span onClick={onDisconnect} style={{fontSize:10,color:CL.pale,cursor:"pointer"}} title="disconnect">⏻</span>
+      <div style={{width:10,height:10,background:CL.faint,animation:"pulse 2.5s ease-in-out infinite"}}/>
     </div>
   </div>);
 }
-function TaskRow({tk,lineName,t,isDone,onCycle}){
-  return (<div style={{display:"flex",alignItems:"center",padding:isDone?"6px 18px":"10px 18px",borderBottom:"1px dashed "+CL.faint}}>
-    <div style={{width:28,flexShrink:0}} onClick={function(e){e.stopPropagation();if(onCycle)onCycle(tk.id,tk.status)}}>
-      <span style={{width:14,height:14,display:"inline-block",cursor:"pointer",border:"2px solid "+(isDone?CL.gold:tk.status==="in_progress"?CL.primary:CL.border),background:isDone?CL.gold:tk.status==="in_progress"?CL.primary:"transparent"}}/>
+
+function TaskRow({tk,lineName,t,isDone,onCycle,onDel,onEdit}){
+  var [editing,setEditing]=useState(false);var [v,setV]=useState(tk.title);
+  function save(){if(v.trim()&&v!==tk.title)onEdit(tk.id,{title:v.trim()});setEditing(false)}
+  return (<div style={{display:"flex",alignItems:"center",padding:isDone?"4px 14px":"6px 14px",borderBottom:"1px dashed "+CL.faint}}>
+    <div style={{width:24,flexShrink:0}} onClick={function(e){e.stopPropagation();onCycle(tk.id,tk.status)}}>
+      <span style={{width:12,height:12,display:"inline-block",cursor:"pointer",border:"2px solid "+(isDone?CL.gold:tk.status==="in_progress"?CL.primary:CL.border),background:isDone?CL.gold:tk.status==="in_progress"?CL.primary:"transparent"}}/>
     </div>
-    <div style={{width:28,flexShrink:0}}>{!isDone&&<span style={{fontSize:11,color:PRI_C[tk.priority]}}>{tk.priority==="high"?t.high:tk.priority==="medium"?t.med:t.low}</span>}</div>
-    <div style={{flex:1,minWidth:0,fontSize:isDone?13:14,color:isDone?CL.muted:CL.text,textDecoration:isDone?"line-through":"none"}}>{tk.title}</div>
-    {lineName&&<span style={{fontSize:12,color:CL.pale,marginLeft:12,flexShrink:0}}>{lineName}</span>}
-    {tk.due_date&&!isDone&&<span style={{fontSize:12,color:CL.muted,marginLeft:12,flexShrink:0}}>{fmtDate(tk.due_date)}</span>}
-    {isDone&&tk.completed_at&&<span style={{fontSize:11,color:CL.pale,marginLeft:12,flexShrink:0}}>{fmtDate(tk.completed_at)}</span>}
+    <div style={{width:24,flexShrink:0}}>{!isDone&&<span style={{fontSize:10,color:PRI_C[tk.priority]}}>{tk.priority==="high"?t.high:tk.priority==="medium"?t.med:t.low}</span>}</div>
+    <div style={{flex:1,minWidth:0}}>
+      {editing?<input className="edit-input" value={v} onChange={function(e){setV(e.target.value)}} onBlur={save} onKeyDown={function(e){if(e.key==="Enter")save();if(e.key==="Escape")setEditing(false)}} autoFocus style={{fontSize:13}}/>
+      :<span onClick={function(){if(!isDone)setEditing(true)}} style={{fontSize:13,color:isDone?CL.muted:CL.text,textDecoration:isDone?"line-through":"none",cursor:isDone?"default":"text"}}>{tk.title}</span>}
+    </div>
+    {lineName&&<span style={{fontSize:11,color:CL.pale,marginLeft:8,flexShrink:0}}>{lineName}</span>}
+    {tk.due_date&&!isDone&&<span style={{fontSize:11,color:CL.muted,marginLeft:8,flexShrink:0}}>{fd(tk.due_date)}</span>}
+    {isDone&&tk.completed_at&&<span style={{fontSize:10,color:CL.pale,marginLeft:8,flexShrink:0}}>{fd(tk.completed_at)}</span>}
+    <span className="del-btn" onClick={function(e){e.stopPropagation();onDel(tk.id)}} style={{marginLeft:6}}>{t.del}</span>
   </div>);
 }
-function TasksList({tasks,lines,t,onCycle}){
+function TasksList({tasks,lines,t,onCycle,onDel,onEdit}){
   var [filter,setFilter]=useState("all");
   var fl=filter==="all"?tasks:tasks.filter(function(x){return x.work_line_id===filter});
-  var pending=fl.filter(function(x){return x.status!=="done"&&!x.is_archived}).sort(function(a,b){var p={high:0,medium:1,low:2};return(p[a.priority]||1)-(p[b.priority]||1)});
+  var pending=fl.filter(function(x){return x.status!=="done"&&!x.is_archived}).sort(function(a,b){return({high:0,medium:1,low:2}[a.priority]||1)-({high:0,medium:1,low:2}[b.priority]||1)});
   var done=fl.filter(function(x){return x.status==="done"&&!x.is_archived}).sort(function(a,b){return new Date(b.completed_at||0)-new Date(a.completed_at||0)});
   var ln=function(id){var f=lines.find(function(l){return l.id===id});return f?f.name:""};
   return (<div>
-    <div style={{display:"flex",gap:4,marginBottom:16,flexWrap:"wrap"}}>
+    <div style={{display:"flex",gap:3,marginBottom:10,flexWrap:"wrap"}}>
       <span style={filter==="all"?S.btnDk:S.btn} onClick={function(){setFilter("all")}}>ALL</span>
       {lines.map(function(w){return <span key={w.id} style={filter===w.id?S.btnDk:S.btn} onClick={function(){setFilter(w.id)}}>{w.name}</span>})}
     </div>
     <div style={S.card}>
-      {pending.length===0&&done.length===0&&<div style={{padding:28,textAlign:"center",color:CL.pale}}>{t.noTasks}</div>}
-      {pending.map(function(tk){return <TaskRow key={tk.id} tk={tk} lineName={ln(tk.work_line_id)} t={t} isDone={false} onCycle={onCycle}/>})}
-      {done.length>0&&<div style={{padding:"12px 18px 4px"}}><span style={{fontSize:11,letterSpacing:2,color:CL.pale}}>{t.done}</span></div>}
-      {done.map(function(tk){return <TaskRow key={tk.id} tk={tk} lineName={ln(tk.work_line_id)} t={t} isDone={true} onCycle={onCycle}/>})}
+      {pending.length===0&&done.length===0&&<div style={{padding:20,textAlign:"center",color:CL.pale,fontSize:12}}>{t.noTasks}</div>}
+      {pending.map(function(tk){return <TaskRow key={tk.id} tk={tk} lineName={ln(tk.work_line_id)} t={t} isDone={false} onCycle={onCycle} onDel={onDel} onEdit={onEdit}/>})}
+      {done.length>0&&<div style={{padding:"8px 14px 2px"}}><span style={{fontSize:10,letterSpacing:2,color:CL.pale}}>{t.done}</span></div>}
+      {done.map(function(tk){return <TaskRow key={tk.id} tk={tk} lineName={ln(tk.work_line_id)} t={t} isDone={true} onCycle={onCycle} onDel={onDel} onEdit={onEdit}/>})}
     </div>
   </div>);
 }
 
-// ===== WORK PAGES =====
-function WorkOverview({lines,tasks,t,onCycle}){
+function StatBar({items}){
+  return (<div style={{...S.card,padding:"8px 16px",display:"flex",gap:24,marginBottom:10,alignItems:"baseline"}}>
+    {items.map(function(it){return <div key={it[0]} style={{display:"flex",alignItems:"baseline",gap:4}}>
+      <span style={{fontSize:11,color:CL.muted,letterSpacing:1}}>{it[0]}</span>
+      <span style={{fontSize:18,color:it[2]||CL.primary}}>{it[1]}</span>
+    </div>})}
+  </div>);
+}
+
+function EditableCard({wl,t,onSave,fields}){
+  var [editing,setEditing]=useState(false);var [vals,setVals]=useState({});
+  function start(){var v={};fields.forEach(function(f){v[f.key]=wl[f.key]||""});setVals(v);setEditing(true)}
+  function save(){onSave(wl.id,vals);setEditing(false)}
+  if(editing) return (<div style={{...S.card,padding:"10px 14px",flex:"1 1 0",minWidth:200}}>
+    {fields.map(function(f){return <div key={f.key} style={{marginBottom:6}}><div style={{fontSize:10,color:CL.muted}}>{f.label}</div><input className="edit-input" value={vals[f.key]||""} onChange={function(e){var nv=Object.assign({},vals);nv[f.key]=e.target.value;setVals(nv)}} style={{fontSize:12}}/></div>})}
+    <div style={{display:"flex",gap:4,marginTop:6}}><span onClick={save} style={{...S.btnSm,fontSize:10}}>OK</span><span onClick={function(){setEditing(false)}} style={{...S.btnSm,fontSize:10,color:CL.muted,borderColor:CL.border}}>{t.cancel}</span></div>
+  </div>);
+  return null;
+}
+
+function WorkOverview({lines,tasks,t,onCycle,onDel,onEditTask,onEditLine}){
   var active=tasks.filter(function(x){return x.status!=="done"&&!x.is_archived});
   var ln=function(id){var f=lines.find(function(l){return l.id===id});return f?f.name:""};
+  var [editId,setEditId]=useState(null);
   return (<div>
-    <div style={{...S.card,padding:"8px 16px",display:"flex",gap:20,marginBottom:10}}>
-      <div><span style={S.label}>{t.pending} </span><span style={{fontSize:16,color:CL.primary,marginLeft:6}}>{active.length}</span></div>
-      <div><span style={S.label}>IN PROGRESS </span><span style={{fontSize:16,color:CL.primary,marginLeft:6}}>{active.filter(function(x){return x.status==="in_progress"}).length}</span></div>
-      <div><span style={S.label}>{t.high} </span><span style={{fontSize:20,color:CL.dark,marginLeft:6}}>{active.filter(function(x){return x.priority==="high"}).length}</span></div>
-    </div>
-    <div style={{display:"flex",gap:10,marginBottom:10}}>
-      {lines.map(function(wl){return(<div key={wl.id} style={{...S.card,padding:"10px 14px",flex:"1 1 0"}}>
-        <div style={{display:"flex",justifyContent:"space-between",marginBottom:10}}><span style={{fontSize:15}}>{wl.name}</span><span style={{fontSize:11,color:STAT_C[wl.status]||CL.light,border:"1px solid",padding:"1px 8px"}}>{t[wl.status==="on_track"?"onTrack":wl.status==="at_risk"?"atRisk":"blocked"]||wl.status}</span></div>
-        {wl.key_metric_value!=null&&<div style={{fontSize:16,color:CL.primary}}>{wl.key_metric_value}<span style={{fontSize:13,color:CL.muted,marginLeft:6}}>{wl.key_metric_unit||""}</span></div>}
-        {wl.key_metric_label&&<div style={{fontSize:12,color:CL.muted,marginBottom:10}}>{wl.key_metric_label}</div>}
-        {wl.next_action&&<div style={{fontSize:13,borderTop:"2px dashed "+CL.faint,paddingTop:10}}>{"\u2192"} {wl.next_action}</div>}
-      </div>)})}
+    <StatBar items={[[t.pending,active.length],[t.inProg,active.filter(function(x){return x.status==="in_progress"}).length],[t.hi||t.high,active.filter(function(x){return x.priority==="high"}).length,CL.dark]]}/>
+    <div style={{display:"flex",gap:10,marginBottom:12}}>
+      {lines.map(function(wl){
+        if(editId===wl.id) return <EditableCard key={wl.id} wl={wl} t={t} fields={[{key:"name",label:"Name"},{key:"next_action",label:"Next"},{key:"status",label:"Status"}]} onSave={function(id,v){onEditLine(id,v);setEditId(null)}}/>;
+        return (<div key={wl.id} style={{...S.card,padding:"10px 14px",flex:"1 1 0",minWidth:180,cursor:"default"}} onDoubleClick={function(){setEditId(wl.id)}}>
+          <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}><span style={{fontSize:13}}>{wl.name}</span><span style={{fontSize:10,color:STAT_C[wl.status]||CL.light,border:"1px solid",padding:"0 6px"}}>{t[wl.status==="on_track"?"onTrack":wl.status==="at_risk"?"atRisk":"blocked"]||wl.status}</span></div>
+          {wl.key_metric_value!=null&&<div style={{fontSize:20,color:CL.primary}}>{wl.key_metric_value}<span style={{fontSize:11,color:CL.muted,marginLeft:4}}>{wl.key_metric_unit||""}</span></div>}
+          {wl.key_metric_label&&<div style={{fontSize:11,color:CL.muted,marginBottom:6}}>{wl.key_metric_label}</div>}
+          {wl.next_action&&<div style={{fontSize:12,borderTop:"1px dashed "+CL.faint,paddingTop:6}}>→ {wl.next_action}</div>}
+        </div>)})}
     </div>
     <div style={S.secTitle}>{t.recentTasks}</div>
-    <div style={S.card}>{active.slice(0,5).map(function(tk){return <TaskRow key={tk.id} tk={tk} lineName={ln(tk.work_line_id)} t={t} isDone={false} onCycle={onCycle}/>})}</div>
+    <div style={S.card}>{active.slice(0,5).map(function(tk){return <TaskRow key={tk.id} tk={tk} lineName={ln(tk.work_line_id)} t={t} isDone={false} onCycle={onCycle} onDel={onDel} onEdit={onEditTask}/>})}</div>
   </div>);
 }
 function WorkMetrics({metrics,t}){
@@ -167,110 +171,118 @@ function WorkMetrics({metrics,t}){
   var l7=sorted.slice(-7),p7=sorted.slice(-14,-7);var sm=function(a,k){return a.reduce(function(s,m){return s+(m[k]||0)},0)};
   var cmp=function(k){var c=sm(l7,k),p=sm(p7,k);if(!p)return{v:c,d:"flat",p:null};var pct=Math.round((c-p)/p*100);return{v:c,d:pct>0?"up":pct<0?"down":"flat",p:Math.abs(pct)}};
   var recent=sorted.slice(-14);var maxV=Math.max.apply(null,recent.map(function(d){return Math.max(d.new_guanchayuan||0,d.new_chapin||0)}));if(maxV<10)maxV=10;
-  if(recent.length===0)return <div style={{...S.card,padding:28,textAlign:"center",color:CL.pale}}>{t.noData}</div>;
+  if(!recent.length)return <div style={{...S.card,padding:20,textAlign:"center",color:CL.pale}}>{t.noData}</div>;
   return (<div>
     <div style={{...S.card,padding:14,marginBottom:10}}><div style={S.secTitle}>14 DAYS</div>
-      <div style={{height:100,display:"flex",alignItems:"flex-end",gap:4}}>{recent.map(function(d,i){return(<div key={i} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:2}}>
-        <div style={{display:"flex",gap:2,alignItems:"flex-end",height:80,width:"100%"}}><div style={{flex:1,height:Math.max(3,(d.new_guanchayuan||0)/maxV*120),background:CL.primary}}/><div style={{flex:1,height:Math.max(3,(d.new_chapin||0)/maxV*120),background:CL.gold}}/></div>
-        <span style={{fontSize:9,color:CL.pale}}>{d.date.slice(8)}</span></div>)})}</div>
-      <div style={{display:"flex",gap:20,marginTop:12,fontSize:12}}><span style={{display:"flex",alignItems:"center",gap:6}}><span style={{width:10,height:10,background:CL.primary}}/>{t.observers}</span><span style={{display:"flex",alignItems:"center",gap:6}}><span style={{width:10,height:10,background:CL.gold}}/>{t.reviews}</span></div></div>
-    <div style={{...S.card,padding:14,display:"flex",gap:40,flexWrap:"wrap"}}>{[["new_guanchayuan",t.observers],["new_chapin",t.reviews],["new_negative",t.negative]].map(function(arr){var c=cmp(arr[0]);return(<div key={arr[0]} style={{textAlign:"center"}}><div style={{...S.label,marginBottom:4}}>{arr[1]}</div><div style={{fontSize:20,color:CL.primary}}>{c.v}</div>{c.p!=null&&<span style={{fontSize:13,color:c.d==="up"?CL.light:CL.gold}}>{c.d==="up"?"\u2191":"\u2193"}{c.p}%</span>}</div>)})}</div>
+      <div style={{height:90,display:"flex",alignItems:"flex-end",gap:3}}>{recent.map(function(d,i){return <div key={i} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:1}}>
+        <div style={{display:"flex",gap:1,alignItems:"flex-end",height:72,width:"100%"}}><div style={{flex:1,height:Math.max(2,(d.new_guanchayuan||0)/maxV*72),background:CL.primary}}/><div style={{flex:1,height:Math.max(2,(d.new_chapin||0)/maxV*72),background:CL.gold}}/></div>
+        <span style={{fontSize:8,color:CL.pale}}>{d.date.slice(8)}</span></div>})}</div>
+      <div style={{display:"flex",gap:16,marginTop:8,fontSize:11}}><span style={{display:"flex",alignItems:"center",gap:4}}><span style={{width:8,height:8,background:CL.primary}}/>{t.observers}</span><span style={{display:"flex",alignItems:"center",gap:4}}><span style={{width:8,height:8,background:CL.gold}}/>{t.reviews}</span></div></div>
+    <div style={{...S.card,padding:14,display:"flex",gap:32,flexWrap:"wrap"}}>{[["new_guanchayuan",t.observers],["new_chapin",t.reviews],["new_negative",t.negative]].map(function(a){var c=cmp(a[0]);return <div key={a[0]} style={{textAlign:"center"}}><div style={{fontSize:11,color:CL.muted,marginBottom:2}}>{a[1]}</div><div style={{fontSize:20,color:CL.primary}}>{c.v}</div>{c.p!=null&&<span style={{fontSize:11,color:c.d==="up"?CL.light:CL.gold}}>{c.d==="up"?"↑":"↓"}{c.p}%</span>}</div>})}</div>
   </div>);
 }
 function WorkContext({contextItems,decisions,t}){
   return (<div>
     <div style={{...S.card,padding:14,marginBottom:10}}><div style={S.secTitle}>{t.progress}</div>
-      {contextItems.map(function(c){return(<div key={c.id} style={{display:"flex",gap:12,padding:"8px 0",borderBottom:"1px dashed "+CL.faint}}>
-        <span style={{fontSize:12,color:CL.pale,width:44,flexShrink:0}}>{fmtDate(c.created_at)}</span>
-        <span style={{fontSize:11,color:(TAG_C[c.type]||TAG_C[c.tag]||CL.pale),border:"1px solid "+(TAG_C[c.type]||TAG_C[c.tag]||CL.pale)+"60",padding:"1px 7px",flexShrink:0}}>{c.type||c.tag||""}</span>
-        <span style={{fontSize:14,color:CL.text,flex:1,lineHeight:1.5}}>{c.content}</span></div>)})}
-      {contextItems.length===0&&<div style={{padding:16,textAlign:"center",color:CL.pale}}>{"\u2014"}</div>}
-    </div>
+      {contextItems.map(function(c){var tag=c.type||c.tag||"";return <div key={c.id} style={{display:"flex",gap:8,padding:"5px 0",borderBottom:"1px dashed "+CL.faint}}>
+        <span style={{fontSize:11,color:CL.pale,width:40,flexShrink:0}}>{fd(c.created_at)}</span>
+        <span style={{fontSize:10,color:TAG_C[tag]||CL.pale,border:"1px solid "+(TAG_C[tag]||CL.pale)+"60",padding:"0 5px",flexShrink:0}}>{tag}</span>
+        <span style={{fontSize:13,color:CL.text,flex:1,lineHeight:1.4}}>{c.content}</span></div>})}
+      {!contextItems.length&&<div style={{padding:12,textAlign:"center",color:CL.pale}}>—</div>}</div>
     <div style={{...S.card,padding:14}}><div style={S.secTitle}>{t.decisions}</div>
-      {decisions.map(function(d){return(<div key={d.id} style={{padding:"10px 0 10px 14px",borderLeft:"3px solid "+CL.faint,marginBottom:10}}>
-        <div style={{fontSize:14}}>{d.decision}</div>{d.reasoning&&<div style={{fontSize:13,color:CL.muted,marginTop:4}}>{d.reasoning}</div>}
-        <div style={{fontSize:12,color:CL.pale,marginTop:4}}>{d.made_by||""} {"\u00b7"} {fmtDate(d.made_at)}</div></div>)})}
-      {decisions.length===0&&<div style={{padding:16,textAlign:"center",color:CL.pale}}>{"\u2014"}</div>}
-    </div>
+      {decisions.map(function(d){return <div key={d.id} style={{padding:"6px 0 6px 10px",borderLeft:"3px solid "+CL.faint,marginBottom:6}}>
+        <div style={{fontSize:13}}>{d.decision}</div>{d.reasoning&&<div style={{fontSize:12,color:CL.muted,marginTop:2}}>{d.reasoning}</div>}
+        <div style={{fontSize:11,color:CL.pale,marginTop:2}}>{d.made_by||""} · {fd(d.made_at)}</div></div>})}
+      {!decisions.length&&<div style={{padding:12,textAlign:"center",color:CL.pale}}>—</div>}</div>
   </div>);
 }
 
-// ===== LUX PAGES =====
-function LuxOverview({lines,t}){
+function LuxOverview({lines,t,onEditLine,onAddLine}){
+  var [editId,setEditId]=useState(null);
   var act=lines.filter(function(l){return l.status!=="done"});var dn=lines.filter(function(l){return l.status==="done"});
   return (<div>
     <div style={S.secTitle}>{t.projects} ({act.length})</div>
-    <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12,marginBottom:10}}>
-      {act.map(function(p){return(<div key={p.id} style={{...S.card,padding:"10px 14px"}}>
-        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>{p.icon&&<span style={{fontSize:24}}>{p.icon}</span>}<div><div style={{fontSize:14}}>{p.name}</div>{p.description&&<div style={{fontSize:11,color:CL.pale}}>{p.description}</div>}</div></div>
-        {p.next_action&&<div style={{fontSize:13,marginBottom:6}}>{p.next_action}</div>}
-      </div>)})}
+    <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,marginBottom:12}}>
+      {act.map(function(p){
+        if(editId===p.id) return <EditableCard key={p.id} wl={p} t={t} fields={[{key:"name",label:"Name"},{key:"next_action",label:"Next"}]} onSave={function(id,v){onEditLine(id,v);setEditId(null)}}/>;
+        return <div key={p.id} style={{...S.card,padding:"10px 12px"}} onDoubleClick={function(){setEditId(p.id)}}>
+          <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>{p.icon&&<span style={{fontSize:20}}>{p.icon}</span>}<div><div style={{fontSize:13}}>{p.name}</div>{p.description&&<div style={{fontSize:10,color:CL.pale}}>{p.description}</div>}</div></div>
+          {p.next_action&&<div style={{fontSize:11,color:CL.muted,borderTop:"1px dashed "+CL.faint,paddingTop:4}}>→ {p.next_action}</div>}
+        </div>})}
     </div>
     {dn.length>0&&<div><div style={S.secTitle}>{t.completed} ({dn.length})</div>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12}}>
-        {dn.map(function(p){return(<div key={p.id} style={{...S.cardDim,padding:"10px 14px"}}>
-          <div style={{display:"flex",alignItems:"center",gap:10}}>{p.icon&&<span style={{fontSize:24,opacity:0.4}}>{p.icon}</span>}<div><div style={{fontSize:14,color:CL.muted}}>{p.name}</div></div></div>
-        </div>)})}
+      <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,marginBottom:12}}>
+        {dn.map(function(p){return <div key={p.id} style={{...S.cardDim,padding:"10px 12px"}}>
+          <div style={{display:"flex",alignItems:"center",gap:8}}>{p.icon&&<span style={{fontSize:20,opacity:.4}}>{p.icon}</span>}<span style={{fontSize:13,color:CL.muted}}>{p.name}</span></div></div>})}
       </div></div>}
+    <span onClick={onAddLine} style={{...S.btnSm,color:CL.pale,borderColor:CL.faint}}>{t.newLine}</span>
   </div>);
 }
-function LuxIdeas({ideas,linesAll,t,onAdopt,onDrop}){
+function LuxIdeas({ideas,linesAll,t,onAdopt,onDrop,onDel}){
   var [showDone,setShowDone]=useState(false);
   var actv=ideas.filter(function(x){return x.status==="active"});var proc=ideas.filter(function(x){return x.status!=="active"});
   return (<div>
     <div style={S.card}>
-      {actv.map(function(idea){return(<div key={idea.id} style={{display:"flex",alignItems:"flex-start",padding:"8px 14px",borderBottom:"1px dashed "+CL.faint,gap:12}}>
-        <div style={{flex:1}}><div style={{fontSize:14,lineHeight:1.6}}>{idea.content}</div>
-          <div style={{display:"flex",gap:10,marginTop:6,alignItems:"center"}}><span style={{fontSize:12,color:CL.pale}}>{fmtDate(idea.created_at)}</span>
-            {idea.line_id&&<span style={{fontSize:11,color:CL.light,border:"1px solid "+CL.faint,padding:"0 6px"}}>{(linesAll.find(function(l){return l.id===idea.line_id})||{}).name||""}</span>}</div></div>
-        <div style={{display:"flex",gap:4,flexShrink:0,paddingTop:2}}>
-          <span onClick={function(){onAdopt(idea.id)}} style={{...S.btnSm,fontSize:11,padding:"2px 8px",color:CL.light,borderColor:CL.faint,cursor:"pointer"}} title={t.adopt}>{"\u2713"}</span>
-          <span onClick={function(){onDrop(idea.id)}} style={{...S.btnSm,fontSize:11,padding:"2px 8px",color:CL.muted,borderColor:CL.faint,cursor:"pointer"}} title={t.drop}>{"\u00d7"}</span>
+      {actv.map(function(idea){return <div key={idea.id} style={{display:"flex",alignItems:"flex-start",padding:"8px 14px",borderBottom:"1px dashed "+CL.faint,gap:8}}>
+        <div style={{flex:1}}><div style={{fontSize:13,lineHeight:1.5}}>{idea.content}</div>
+          <div style={{display:"flex",gap:8,marginTop:4,alignItems:"center"}}><span style={{fontSize:11,color:CL.pale}}>{fd(idea.created_at)}</span>
+            {idea.line_id&&<span style={{fontSize:10,color:CL.light,border:"1px solid "+CL.faint,padding:"0 4px"}}>{(linesAll.find(function(l){return l.id===idea.line_id})||{}).name||""}</span>}</div></div>
+        <div style={{display:"flex",gap:3,flexShrink:0,paddingTop:2}}>
+          <span onClick={function(){onAdopt(idea.id)}} style={{...S.btnSm,fontSize:10,padding:"1px 6px",color:CL.light,borderColor:CL.faint,cursor:"pointer"}}>✓</span>
+          <span onClick={function(){onDrop(idea.id)}} style={{...S.btnSm,fontSize:10,padding:"1px 6px",color:CL.muted,borderColor:CL.faint,cursor:"pointer"}}>×</span>
         </div>
-      </div>)})}
-      {actv.length===0&&<div style={{padding:28,textAlign:"center",color:CL.pale}}>{t.noIdeas}</div>}
+      </div>})}
+      {!actv.length&&<div style={{padding:20,textAlign:"center",color:CL.pale,fontSize:12}}>{t.noIdeas}</div>}
     </div>
-    {proc.length>0&&<div style={{marginTop:16}}>
-      <span onClick={function(){setShowDone(!showDone)}} style={{fontSize:12,color:CL.pale,cursor:"pointer",letterSpacing:1}}>{showDone?"\u25b2":"\u25b8"} {t.processed} ({proc.length})</span>
-      {showDone&&<div style={{...S.cardDim,marginTop:8}}>
-        {proc.map(function(idea){return(<div key={idea.id} style={{display:"flex",padding:"8px 18px",borderBottom:"1px dashed #e8e8e8",gap:12,alignItems:"center"}}>
-          <span style={{fontSize:11,color:idea.status==="adopted"?CL.gold:CL.border,width:32,flexShrink:0}}>{idea.status==="adopted"?t.adopt:t.drop}</span>
-          <span style={{fontSize:13,color:CL.muted,flex:1}}>{idea.content}</span>
-          <span style={{fontSize:11,color:CL.border}}>{fmtDate(idea.created_at)}</span></div>)})}
+    {proc.length>0&&<div style={{marginTop:10}}>
+      <span onClick={function(){setShowDone(!showDone)}} style={{fontSize:11,color:CL.pale,cursor:"pointer"}}>{showDone?"▲":"▸"} {t.processed} ({proc.length})</span>
+      {showDone&&<div style={{...S.cardDim,marginTop:6}}>
+        {proc.map(function(idea){return <div key={idea.id} style={{display:"flex",padding:"5px 14px",borderBottom:"1px dashed #e8e8e8",gap:8,alignItems:"center"}}>
+          <span style={{fontSize:10,color:idea.status==="adopted"?CL.gold:CL.border,width:28}}>{idea.status==="adopted"?t.adopt:t.drop}</span>
+          <span style={{fontSize:12,color:CL.muted,flex:1}}>{idea.content}</span>
+          <span className="del-btn" onClick={function(){onDel(idea.id)}}>{t.del}</span></div>})}
       </div>}</div>}
   </div>);
 }
 
-// ===== IRIS PAGES =====
-function IrisOverview({lines,learnings,t}){
+function IrisOverview({lines,learnings,t,onEditLine,onAddLine}){
+  var [editId,setEditId]=useState(null);
   return (<div>
-    <div style={{display:"flex",gap:10,marginBottom:10,flexWrap:"wrap"}}>
-      {lines.map(function(wl){return(<div key={wl.id} style={{...S.card,padding:"10px 14px",flex:"1 1 280px"}}>
-        <div style={{fontSize:15,marginBottom:6}}>{wl.name}</div>
-        {wl.direction&&<div style={{marginBottom:6}}><div style={{fontSize:11,letterSpacing:1,color:CL.gold,marginBottom:3}}>{t.direction}</div><div style={{fontSize:13}}>{wl.direction}</div></div>}
-        {wl.next_action&&<div style={{borderTop:"2px dashed "+CL.faint,paddingTop:8}}><div style={{fontSize:11,letterSpacing:1,color:CL.pale,marginBottom:3}}>{t.nextStep}</div><div style={{fontSize:13}}>{"\u2192"} {wl.next_action}</div></div>}
-      </div>)})}
+    <div style={{display:"flex",gap:10,marginBottom:12,flexWrap:"wrap"}}>
+      {lines.map(function(wl){
+        if(editId===wl.id) return <EditableCard key={wl.id} wl={wl} t={t} fields={[{key:"name",label:"Name"},{key:"direction",label:"Direction"},{key:"next_action",label:"Next"}]} onSave={function(id,v){onEditLine(id,v);setEditId(null)}}/>;
+        return <div key={wl.id} style={{...S.card,padding:"10px 14px",flex:"1 1 240px"}} onDoubleClick={function(){setEditId(wl.id)}}>
+          <div style={{fontSize:14,marginBottom:8}}>{wl.name}</div>
+          {wl.direction&&<div style={{marginBottom:6}}><div style={{fontSize:10,letterSpacing:1,color:CL.gold,marginBottom:2}}>{t.direction}</div><div style={{fontSize:12}}>{wl.direction}</div></div>}
+          {wl.next_action&&<div style={{borderTop:"1px dashed "+CL.faint,paddingTop:6}}><div style={{fontSize:10,letterSpacing:1,color:CL.pale,marginBottom:2}}>{t.nextStep}</div><div style={{fontSize:12}}>→ {wl.next_action}</div></div>}
+        </div>})}
     </div>
+    <span onClick={onAddLine} style={{...S.btnSm,color:CL.pale,borderColor:CL.faint,marginBottom:10,display:"inline-block"}}>{t.newLine}</span>
     <div style={S.secTitle}>{t.recentLearn}</div>
-    <div style={S.card}>{learnings.slice(0,3).map(function(l){return(<div key={l.id} style={{padding:"8px 14px",borderBottom:"1px dashed "+CL.faint}}>
-      <div style={{fontSize:14,lineHeight:1.6}}>{l.content}</div>
-      <div style={{display:"flex",gap:10,marginTop:6,alignItems:"center",flexWrap:"wrap"}}><span style={{fontSize:12,color:CL.pale}}>{fmtDate(l.created_at)}</span>
-        {l.source&&<span style={{fontSize:12,color:CL.muted}}>{"\u00b7"} {l.source}</span>}
-        {l.tags&&l.tags.map(function(tg){return <span key={tg} style={{fontSize:11,color:CL.light,border:"1px solid "+CL.faint,padding:"0 6px"}}>{tg}</span>})}</div></div>)})}{learnings.length===0&&<div style={{padding:28,textAlign:"center",color:CL.pale}}>{t.noLearn}</div>}</div>
+    <div style={S.card}>{learnings.slice(0,3).map(function(l){return <div key={l.id} style={{padding:"8px 14px",borderBottom:"1px dashed "+CL.faint}}>
+      <div style={{fontSize:13,lineHeight:1.5}}>{l.content}</div>
+      <div style={{display:"flex",gap:8,marginTop:4,alignItems:"center",flexWrap:"wrap"}}><span style={{fontSize:11,color:CL.pale}}>{fd(l.created_at)}</span>
+        {l.source&&<span style={{fontSize:11,color:CL.muted}}>· {l.source}</span>}
+        {l.tags&&l.tags.map(function(tg){return <span key={tg} style={{fontSize:10,color:CL.light,border:"1px solid "+CL.faint,padding:"0 4px"}}>{tg}</span>})}</div></div>})}
+      {!learnings.length&&<div style={{padding:20,textAlign:"center",color:CL.pale,fontSize:12}}>{t.noLearn}</div>}
+    </div>
   </div>);
 }
-function LearnPage({learnings,t}){
+function LearnPage({learnings,t,onDel}){
   var last="";
-  return (<div>{learnings.map(function(l){var show=l.created_at!==last;last=l.created_at;return(<div key={l.id}>
-    {show&&<div style={{fontSize:12,color:CL.muted,padding:"14px 0 4px",display:"flex",alignItems:"center",gap:8}}><span style={{width:6,height:6,background:CL.gold}}/>{(l.created_at||"").slice(0,10)}</div>}
-    <div style={{padding:"10px 0 10px 18px",borderLeft:"2px solid "+CL.faint}}>
-      <div style={{fontSize:14,lineHeight:1.7}}>{l.content}</div>
-      <div style={{display:"flex",gap:10,marginTop:6,alignItems:"center",flexWrap:"wrap"}}>
-        {l.source&&<span style={{fontSize:12,color:CL.muted}}>{l.source}</span>}
-        {l.tags&&l.tags.map(function(tg){return <span key={tg} style={{fontSize:11,color:CL.light,border:"1px solid "+CL.faint,padding:"0 6px"}}>{tg}</span>})}</div></div></div>)})}{learnings.length===0&&<div style={{padding:28,textAlign:"center",color:CL.pale}}>{t.noLearn}</div>}</div>);
+  return (<div>{learnings.map(function(l){var dt=(l.created_at||"").slice(0,10);var show=dt!==last;last=dt;return <div key={l.id}>
+    {show&&<div style={{fontSize:11,color:CL.muted,padding:"10px 0 3px",display:"flex",alignItems:"center",gap:6}}><span style={{width:5,height:5,background:CL.gold}}/>{dt}</div>}
+    <div style={{padding:"6px 0 6px 14px",borderLeft:"2px solid "+CL.faint,display:"flex",alignItems:"flex-start"}}>
+      <div style={{flex:1}}><div style={{fontSize:13,lineHeight:1.6}}>{l.content}</div>
+        <div style={{display:"flex",gap:8,marginTop:4,alignItems:"center",flexWrap:"wrap"}}>
+          {l.source&&<span style={{fontSize:11,color:CL.muted}}>{l.source}</span>}
+          {l.tags&&l.tags.map(function(tg){return <span key={tg} style={{fontSize:10,color:CL.light,border:"1px solid "+CL.faint,padding:"0 4px"}}>{tg}</span>})}</div></div>
+      <span className="del-btn" onClick={function(){onDel(l.id)}}>{t.del}</span>
+    </div></div>})}
+    {!learnings.length&&<div style={{padding:20,textAlign:"center",color:CL.pale,fontSize:12}}>{t.noLearn}</div>}
+  </div>);
 }
 
-// ===== QUICK ADD =====
 function QuickAdd({system,t,lines,refresh}){
   var [open,setOpen]=useState(false);var [more,setMore]=useState(false);
   var [tv,setTv]=useState("");var [twl,setTwl]=useState("");
@@ -278,142 +290,117 @@ function QuickAdd({system,t,lines,refresh}){
   var [lc,setLc]=useState("");var [ls,setLs]=useState("");
   var [ic,setIc]=useState("");var [il,setIl]=useState("");
   async function addTask(){if(!tv.trim())return;await insertRow("tasks",{title:tv.trim(),work_line_id:twl||null,category:system==="work"?"work":system==="lux"?"lux":"self",status:"todo",priority:"medium"});setTv("");setTwl("");refresh()}
-  async function saveMetrics(){var r={date:today(),new_guanchayuan:parseInt(mf.a)||0,new_chapin:parseInt(mf.b)||0,curated_chapin:parseInt(mf.c)||0};if(more){r.new_negative=parseInt(mf.neg)||0;r.active_guanchayuan=parseInt(mf.active)||0;r.conversion_rate=parseFloat(mf.conv)||null;r.notes=mf.notes||null}await upsertRow("daily_metrics",r,"date");setMf({a:"",b:"",c:"",neg:"",active:"",conv:"",notes:""});refresh()}
+  async function saveMetrics(){var r={date:td(),new_guanchayuan:parseInt(mf.a)||0,new_chapin:parseInt(mf.b)||0,curated_chapin:parseInt(mf.c)||0};if(more){r.new_negative=parseInt(mf.neg)||0;r.active_guanchayuan=parseInt(mf.active)||0;r.conversion_rate=parseFloat(mf.conv)||null;r.notes=mf.notes||null}await upsertRow("daily_metrics",r,"date");setMf({a:"",b:"",c:"",neg:"",active:"",conv:"",notes:""});refresh()}
   async function addLearn(){if(!lc.trim())return;await insertRow("learnings",{content:lc.trim(),source:ls.trim()||null,category:"self"});setLc("");setLs("");refresh()}
   async function addIdea(){if(!ic.trim())return;await insertRow("ideas",{content:ic.trim(),line_id:il||null,category:"lux"});setIc("");setIl("");refresh()}
-  if(!open)return(<div onClick={function(){setOpen(true)}} style={{position:"fixed",bottom:0,left:0,right:0,background:CL.primary,color:CL.wash,padding:"8px 16px",fontSize:13,cursor:"pointer",textAlign:"center",letterSpacing:3,boxShadow:"0 -2px 0 "+CL.dark,zIndex:50}}>+ QUICK ADD</div>);
-  return(<div style={{position:"fixed",bottom:0,left:0,right:0,background:CL.card,border:"2px solid "+CL.primary,borderBottom:"none",padding:"18px 28px",boxShadow:"0 -4px 12px rgba(26,45,92,.1)",zIndex:50}}>
-    <div style={{maxWidth:1100,margin:"0 auto",display:"flex",gap:20,alignItems:"flex-end",flexWrap:"wrap"}}>
+  function ent(fn){return function(e){if(e.key==="Enter")fn()}}
+  if(!open)return <div onClick={function(){setOpen(true)}} style={{position:"fixed",bottom:0,left:0,right:0,background:CL.primary,color:CL.wash,padding:"10px 24px",fontSize:12,cursor:"pointer",textAlign:"center",letterSpacing:3,boxShadow:"0 -2px 0 "+CL.dark,zIndex:50}}>+ QUICK ADD</div>;
+  return <div style={{position:"fixed",bottom:0,left:0,right:0,background:CL.card,border:"2px solid "+CL.primary,borderBottom:"none",padding:"12px 24px",boxShadow:"0 -4px 8px rgba(26,45,92,.08)",zIndex:50}}>
+    <div style={{maxWidth:1100,margin:"0 auto",display:"flex",gap:16,alignItems:"flex-end",flexWrap:"wrap"}}>
       {system==="work"&&<React.Fragment>
-        <div style={{flex:1,minWidth:240}}>
-          <div style={{...S.label,marginBottom:6}}>{t.metrics}</div>
-          <div style={{display:"flex",gap:10}}>
-            <div style={{flex:1}}><div style={{fontSize:10,color:CL.muted,marginBottom:3}}>{t.observers}</div><input type="number" value={mf.a} onChange={function(e){setMf(Object.assign({},mf,{a:e.target.value}))}} style={{...S.input,fontSize:13}}/></div>
-            <div style={{flex:1}}><div style={{fontSize:10,color:CL.muted,marginBottom:3}}>{t.reviews}</div><input type="number" value={mf.b} onChange={function(e){setMf(Object.assign({},mf,{b:e.target.value}))}} style={{...S.input,fontSize:13}}/></div>
-            <div style={{flex:1}}><div style={{fontSize:10,color:CL.gold,marginBottom:3}}>{t.curated}</div><input type="number" value={mf.c} onChange={function(e){setMf(Object.assign({},mf,{c:e.target.value}))}} style={{...S.input,fontSize:13,color:CL.gold}}/></div>
-            <span onClick={saveMetrics} style={{...S.btnDk,alignSelf:"flex-end"}}>{t.save}</span>
+        <div style={{flex:1,minWidth:220}}>
+          <div style={{...S.label,marginBottom:4}}>{t.metrics}</div>
+          <div style={{display:"flex",gap:6}}>
+            <div style={{flex:1}}><div style={{fontSize:9,color:CL.muted,marginBottom:2}}>{t.observers}</div><input type="number" value={mf.a} onChange={function(e){setMf(Object.assign({},mf,{a:e.target.value}))}} onKeyDown={ent(saveMetrics)} style={{...S.input,fontSize:12}}/></div>
+            <div style={{flex:1}}><div style={{fontSize:9,color:CL.muted,marginBottom:2}}>{t.reviews}</div><input type="number" value={mf.b} onChange={function(e){setMf(Object.assign({},mf,{b:e.target.value}))}} onKeyDown={ent(saveMetrics)} style={{...S.input,fontSize:12}}/></div>
+            <div style={{flex:1}}><div style={{fontSize:9,color:CL.gold,marginBottom:2}}>{t.curated}</div><input type="number" value={mf.c} onChange={function(e){setMf(Object.assign({},mf,{c:e.target.value}))}} onKeyDown={ent(saveMetrics)} style={{...S.input,fontSize:12,color:CL.gold}}/></div>
+            <span onClick={saveMetrics} style={{...S.btnDk,alignSelf:"flex-end",padding:"5px 10px"}}>{t.save}</span>
           </div>
-          {more&&<div style={{display:"flex",gap:10,marginTop:10}}>
-            <div style={{flex:1}}><div style={{fontSize:10,color:CL.muted,marginBottom:3}}>{t.negative}</div><input type="number" value={mf.neg} onChange={function(e){setMf(Object.assign({},mf,{neg:e.target.value}))}} style={{...S.input,fontSize:13}}/></div>
-            <div style={{flex:1}}><div style={{fontSize:10,color:CL.muted,marginBottom:3}}>{t.active}</div><input type="number" value={mf.active} onChange={function(e){setMf(Object.assign({},mf,{active:e.target.value}))}} style={{...S.input,fontSize:13}}/></div>
-            <div style={{flex:1}}><div style={{fontSize:10,color:CL.muted,marginBottom:3}}>{t.convRate}</div><input type="number" step="0.1" value={mf.conv} onChange={function(e){setMf(Object.assign({},mf,{conv:e.target.value}))}} style={{...S.input,fontSize:13}}/></div>
-            <div style={{flex:2}}><div style={{fontSize:10,color:CL.muted,marginBottom:3}}>{t.notes}</div><input value={mf.notes} onChange={function(e){setMf(Object.assign({},mf,{notes:e.target.value}))}} style={{...S.input,fontSize:13}}/></div>
+          {more&&<div style={{display:"flex",gap:6,marginTop:6}}>
+            <div style={{flex:1}}><div style={{fontSize:9,color:CL.muted,marginBottom:2}}>{t.negative}</div><input type="number" value={mf.neg} onChange={function(e){setMf(Object.assign({},mf,{neg:e.target.value}))}} style={{...S.input,fontSize:12}}/></div>
+            <div style={{flex:1}}><div style={{fontSize:9,color:CL.muted,marginBottom:2}}>{t.active}</div><input type="number" value={mf.active} onChange={function(e){setMf(Object.assign({},mf,{active:e.target.value}))}} style={{...S.input,fontSize:12}}/></div>
+            <div style={{flex:1}}><div style={{fontSize:9,color:CL.muted,marginBottom:2}}>{t.convRate}</div><input type="number" step="0.1" value={mf.conv} onChange={function(e){setMf(Object.assign({},mf,{conv:e.target.value}))}} style={{...S.input,fontSize:12}}/></div>
+            <div style={{flex:2}}><div style={{fontSize:9,color:CL.muted,marginBottom:2}}>{t.notes}</div><input value={mf.notes} onChange={function(e){setMf(Object.assign({},mf,{notes:e.target.value}))}} style={{...S.input,fontSize:12}}/></div>
           </div>}
-          <span style={{fontSize:11,color:CL.pale,cursor:"pointer",marginTop:6,display:"inline-block"}} onClick={function(){setMore(!more)}}>{more?t.less:t.more}</span>
-        </div><div style={{width:1,height:44,background:CL.faint}}/>
+          <span style={{fontSize:10,color:CL.pale,cursor:"pointer",marginTop:4,display:"inline-block"}} onClick={function(){setMore(!more)}}>{more?t.less:t.more}</span>
+        </div><div style={{width:1,height:36,background:CL.faint}}/>
       </React.Fragment>}
       {system==="iris"&&<React.Fragment>
-        <div style={{flex:1,minWidth:240}}>
-          <div style={{...S.label,marginBottom:6}}>{t.learn}</div>
-          <div style={{display:"flex",gap:10}}>
-            <input value={lc} onChange={function(e){setLc(e.target.value)}} placeholder="\u4eca\u5929\u7406\u89e3\u4e86\u4ec0\u4e48..." style={{...S.input,flex:2,fontSize:13}}/>
-            <input value={ls} onChange={function(e){setLs(e.target.value)}} placeholder={t.source} style={{...S.input,flex:1,fontSize:12}}/>
+        <div style={{flex:1,minWidth:220}}>
+          <div style={{...S.label,marginBottom:4}}>{t.learn}</div>
+          <div style={{display:"flex",gap:6}}>
+            <input value={lc} onChange={function(e){setLc(e.target.value)}} placeholder="今天理解了什么..." onKeyDown={ent(addLearn)} style={{...S.input,flex:2,fontSize:12}}/>
+            <input value={ls} onChange={function(e){setLs(e.target.value)}} placeholder={t.source} onKeyDown={ent(addLearn)} style={{...S.input,flex:1,fontSize:11}}/>
             <span onClick={addLearn} style={S.btnDk}>{t.addLearn}</span>
           </div>
-        </div><div style={{width:1,height:44,background:CL.faint}}/>
+        </div><div style={{width:1,height:36,background:CL.faint}}/>
       </React.Fragment>}
       {system==="lux"&&<React.Fragment>
-        <div style={{flex:1,minWidth:240}}>
-          <div style={{...S.label,marginBottom:6}}>{t.ideaLabel||t.ideas}</div>
-          <div style={{display:"flex",gap:10}}>
-            <input value={ic} onChange={function(e){setIc(e.target.value)}} placeholder={t.ideaPh} style={{...S.input,flex:2,fontSize:13}}/>
-            <select value={il} onChange={function(e){setIl(e.target.value)}} style={{...S.input,width:120,fontSize:12}}><option value="">{"\u9879\u76ee"}</option>{lines.filter(function(l){return l.status!=="done"}).map(function(l){return <option key={l.id} value={l.id}>{l.name}</option>})}</select>
+        <div style={{flex:1,minWidth:220}}>
+          <div style={{...S.label,marginBottom:4}}>{t.ideaLabel}</div>
+          <div style={{display:"flex",gap:6}}>
+            <input value={ic} onChange={function(e){setIc(e.target.value)}} placeholder={t.ideaPh} onKeyDown={ent(addIdea)} style={{...S.input,flex:2,fontSize:12}}/>
+            <select value={il} onChange={function(e){setIl(e.target.value)}} style={{...S.input,width:100,fontSize:11}}><option value="">项目</option>{lines.filter(function(l){return l.status!=="done"}).map(function(l){return <option key={l.id} value={l.id}>{l.name}</option>})}</select>
             <span onClick={addIdea} style={S.btnDk}>{t.addIdea}</span>
           </div>
-        </div><div style={{width:1,height:44,background:CL.faint}}/>
+        </div><div style={{width:1,height:36,background:CL.faint}}/>
       </React.Fragment>}
-      <div style={{flex:1,minWidth:240}}>
-        <div style={{...S.label,marginBottom:6}}>{t.tasks}</div>
-        <div style={{display:"flex",gap:10}}>
-          <input placeholder={t.newTask} value={tv} onChange={function(e){setTv(e.target.value)}} onKeyDown={function(e){if(e.key==="Enter")addTask()}} style={{...S.input,flex:1,fontSize:13}}/>
-          <select value={twl} onChange={function(e){setTwl(e.target.value)}} style={{...S.input,width:100,fontSize:12}}><option value="">{"\u2014"}</option>{lines.map(function(w){return <option key={w.id} value={w.id}>{w.name}</option>})}</select>
+      <div style={{flex:1,minWidth:220}}>
+        <div style={{...S.label,marginBottom:4}}>{t.tasks}</div>
+        <div style={{display:"flex",gap:6}}>
+          <input placeholder={t.newTask} value={tv} onChange={function(e){setTv(e.target.value)}} onKeyDown={ent(addTask)} style={{...S.input,flex:1,fontSize:12}}/>
+          <select value={twl} onChange={function(e){setTwl(e.target.value)}} style={{...S.input,width:90,fontSize:11}}><option value="">—</option>{lines.map(function(w){return <option key={w.id} value={w.id}>{w.name}</option>})}</select>
           <span onClick={addTask} style={S.btnDk}>+</span>
         </div>
       </div>
-      <span style={{...S.btnSm,alignSelf:"flex-end"}} onClick={function(){setOpen(false)}}>{"\u00d7"}</span>
+      <span style={{...S.btnSm,alignSelf:"flex-end"}} onClick={function(){setOpen(false)}}>×</span>
     </div>
-  </div>);
+  </div>;
 }
 
-// ===== APP =====
 function App(){
-  var [connected,setConnected]=useState(false);
-  var [system,setSystem]=useState("work");
-  var [page,setPage]=useState("overview");
-  var [lang,setLang]=useState("zh");
-  var [loading,setLoading]=useState(true);
-  var [lines,setLines]=useState([]);
-  var [tasks,setTasks]=useState([]);
-  var [metrics,setMetrics]=useState([]);
-  var [contextItems,setContextItems]=useState([]);
-  var [decisions,setDecisions]=useState([]);
-  var [learnings,setLearnings]=useState([]);
-  var [ideas,setIdeas]=useState([]);
+  var [connected,setConnected]=useState(false);var [system,setSystem]=useState("work");var [page,setPage]=useState("overview");
+  var [lang,setLang]=useState("zh");var [loading,setLoading]=useState(true);
+  var [lines,setLines]=useState([]);var [tasks,setTasks]=useState([]);var [metrics,setMetrics]=useState([]);
+  var [contextItems,setContextItems]=useState([]);var [decisions,setDecisions]=useState([]);
+  var [learnings,setLearnings]=useState([]);var [ideas,setIdeas]=useState([]);
   var t=TX[lang];
-
   var refresh=useCallback(async function(){
-    var [ln,tk,mt,ci,dc,lr,id]=await Promise.all([
-      fetchAll("lines","order_index",true),
-      fetchAll("tasks","created_at",false),
-      fetchAll("daily_metrics","date",true),
-      fetchAll("context_items","created_at",false),
-      fetchAll("decisions","made_at",false),
-      fetchAll("learnings","created_at",false),
-      fetchAll("ideas","created_at",false)
-    ]);
+    var [ln,tk,mt,ci,dc,lr,id]=await Promise.all([fetchAll("lines","order_index",true),fetchAll("tasks","created_at",false),fetchAll("daily_metrics","date",true),fetchAll("context_items","created_at",false),fetchAll("decisions","made_at",false),fetchAll("learnings","created_at",false),fetchAll("ideas","created_at",false)]);
     setLines(ln);setTasks(tk);setMetrics(mt);setContextItems(ci);setDecisions(dc);setLearnings(lr);setIdeas(id);setLoading(false);
   },[]);
-
-  useEffect(function(){
-    var h=getHash();
-    if(h&&h.url&&h.key){initSB(h.url,h.key);setConnected(true);refresh()}
-    else{setLoading(false)}
-  },[]);
-
-  async function cycleTask(id,cur){
-    var next=cur==="todo"?"in_progress":cur==="in_progress"?"done":"todo";
-    var upd={status:next};
-    if(next==="done")upd.completed_at=new Date().toISOString();
-    else upd.completed_at=null;
-    await updateRow("tasks",id,upd);refresh();
-  }
+  useEffect(function(){var h=getHash();if(h&&h.url&&h.key){initSB(h.url,h.key);setConnected(true);refresh()}else setLoading(false)},[]);
+  async function cycleTask(id,cur){var next=cur==="todo"?"in_progress":cur==="in_progress"?"done":"todo";var u={status:next};if(next==="done")u.completed_at=new Date().toISOString();else u.completed_at=null;await updateRow("tasks",id,u);refresh()}
+  async function delTask(id){await deleteRow("tasks",id);refresh()}
+  async function editTask(id,u){await updateRow("tasks",id,u);refresh()}
+  async function editLine(id,u){await updateRow("lines",id,u);refresh()}
   async function adoptIdea(id){await updateRow("ideas",id,{status:"adopted"});refresh()}
   async function dropIdea(id){await updateRow("ideas",id,{status:"dropped"});refresh()}
-
-  var curLines=lines.filter(function(l){return system==="work"?l.category==="work":system==="lux"?l.category==="lux":l.category==="self"});
-  var curTasks=tasks.filter(function(t2){return system==="work"?t2.category==="work":system==="lux"?t2.category==="lux":t2.category==="self"});
-  var curCtx=contextItems.filter(function(c){return c.category==="work"||!c.category});
-  var curDec=decisions.filter(function(d){return d.category==="work"||!d.category});
-
+  async function delIdea(id){await deleteRow("ideas",id);refresh()}
+  async function delLearn(id){await deleteRow("learnings",id);refresh()}
+  async function addLine(cat){var name=prompt("Name:");if(!name)return;await insertRow("lines",{id:name.toLowerCase().replace(/\s+/g,"-"),name:name,category:cat,status:cat==="lux"?"active":"on_track",order_index:lines.length+1});refresh()}
+  function disconnect(){window.location.hash="";window.location.reload()}
+  var cl=lines.filter(function(l){return system==="work"?l.category==="work":system==="lux"?l.category==="lux":l.category==="self"});
+  var ct=tasks.filter(function(t2){return system==="work"?t2.category==="work":system==="lux"?t2.category==="lux":t2.category==="self"});
+  var cx=contextItems.filter(function(c){return c.category==="work"||!c.category});
+  var cd=decisions.filter(function(d){return d.category==="work"||!d.category});
   if(!connected&&!loading)return <ConnectScreen onConnect={function(){setConnected(true);refresh()}} t={t}/>;
   if(loading)return <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}}><span style={{color:CL.pale,letterSpacing:3}}>{t.loading}</span></div>;
-
-  return (<div>
+  return <div>
     <SysTabs system={system} setSystem={setSystem} setPage={setPage}/>
-    <div style={{maxWidth:1100,margin:"0 auto",padding:"16px 24px 64px",marginLeft:90}}>
-      <Nav page={page} setPage={setPage} lang={lang} setLang={setLang} t={t} system={system}/>
+    <div style={{maxWidth:1100,margin:"0 auto",padding:"14px 24px 60px",marginLeft:90}}>
+      <Nav page={page} setPage={setPage} lang={lang} setLang={setLang} t={t} system={system} onDisconnect={disconnect}/>
       {system==="work"&&<React.Fragment>
-        {page==="overview"&&<WorkOverview lines={curLines} tasks={curTasks} t={t} onCycle={cycleTask}/>}
-        {page==="tasks"&&<TasksList tasks={curTasks} lines={curLines} t={t} onCycle={cycleTask}/>}
+        {page==="overview"&&<WorkOverview lines={cl} tasks={ct} t={t} onCycle={cycleTask} onDel={delTask} onEditTask={editTask} onEditLine={editLine}/>}
+        {page==="tasks"&&<TasksList tasks={ct} lines={cl} t={t} onCycle={cycleTask} onDel={delTask} onEdit={editTask}/>}
         {page==="metrics"&&<WorkMetrics metrics={metrics} t={t}/>}
-        {page==="context"&&<WorkContext contextItems={curCtx} decisions={curDec} t={t}/>}
+        {page==="context"&&<WorkContext contextItems={cx} decisions={cd} t={t}/>}
       </React.Fragment>}
       {system==="lux"&&<React.Fragment>
-        {page==="overview"&&<LuxOverview lines={curLines} t={t}/>}
-        {page==="tasks"&&<TasksList tasks={curTasks} lines={curLines} t={t} onCycle={cycleTask}/>}
-        {page==="ideas"&&<LuxIdeas ideas={ideas} linesAll={curLines} t={t} onAdopt={adoptIdea} onDrop={dropIdea}/>}
+        {page==="overview"&&<LuxOverview lines={cl} t={t} onEditLine={editLine} onAddLine={function(){addLine("lux")}}/>}
+        {page==="tasks"&&<TasksList tasks={ct} lines={cl} t={t} onCycle={cycleTask} onDel={delTask} onEdit={editTask}/>}
+        {page==="ideas"&&<LuxIdeas ideas={ideas} linesAll={cl} t={t} onAdopt={adoptIdea} onDrop={dropIdea} onDel={delIdea}/>}
       </React.Fragment>}
       {system==="iris"&&<React.Fragment>
-        {page==="overview"&&<IrisOverview lines={curLines} learnings={learnings} t={t}/>}
-        {page==="tasks"&&<TasksList tasks={curTasks} lines={curLines} t={t} onCycle={cycleTask}/>}
-        {page==="learn"&&<LearnPage learnings={learnings} t={t}/>}
+        {page==="overview"&&<IrisOverview lines={cl} learnings={learnings} t={t} onEditLine={editLine} onAddLine={function(){addLine("self")}}/>}
+        {page==="tasks"&&<TasksList tasks={ct} lines={cl} t={t} onCycle={cycleTask} onDel={delTask} onEdit={editTask}/>}
+        {page==="learn"&&<LearnPage learnings={learnings} t={t} onDel={delLearn}/>}
       </React.Fragment>}
-      <div style={{textAlign:"center",padding:"24px 0"}}><span style={{fontSize:11,letterSpacing:3,color:CL.muted}}>{t.footer}</span></div>
+      <div style={{textAlign:"center",padding:"12px 0"}}><span style={{fontSize:10,letterSpacing:3,color:CL.muted}}>{t.footer}</span></div>
     </div>
-    <QuickAdd system={system} t={t} lines={curLines} refresh={refresh}/>
-  </div>);
+    <QuickAdd system={system} t={t} lines={cl} refresh={refresh}/>
+  </div>;
 }
-
 ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
 </script>
 </body>
