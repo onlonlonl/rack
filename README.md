@@ -1,8 +1,8 @@
 # Rack · 架
 
-A personal operating system for you and your Claude. Three systems — Work, Lux, Iris — one pixel-style interface.
+A personal operating system for me and Claude. Three systems — Work, Lux, Iris — one pixel-style interface.
 
-為你和你的 Claude 而建的個人操作系統。三個系統——工作、Lux、自己——一個像素風界面。
+為我和我的 Claude 而建的個人操作系統。三個系統——工作、Lux、自己——一個像素風界面。
 
 ## Systems · 系統
 
